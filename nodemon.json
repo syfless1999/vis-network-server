@@ -1,0 +1,13 @@
+{
+  "ignore": [
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "node_modules"
+  ],
+  "watch": [
+    "src",
+    "app.ts"
+  ],
+  "exec": "npm run start",
+  "ext": "ts"
+}

@@ -1,5 +1,10 @@
-const neo4j = require('neo4j-driver');
-const config = require('../../config');
+import neo4j, { Session } from 'neo4j-driver';
+import { Request } from 'express';
+import config from 'src/config';
+
+export interface Neo4jContext extends Request {
+  neo4jSession?: Session;
+}
 
 const driver = neo4j.driver(
   config.neo4j_url,
@@ -9,7 +14,7 @@ const driver = neo4j.driver(
   ),
 );
 
-const getSession = (context) => {
+export const getSession = (context: Neo4jContext) => {
   if (context.neo4jSession) {
     return context.neo4jSession;
   }
@@ -17,6 +22,3 @@ const getSession = (context) => {
   return context.neo4jSession;
 };
 
-module.exports = {
-  getSession,
-};

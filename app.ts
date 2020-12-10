@@ -1,18 +1,24 @@
-#!/usr/bin/env node
+import _debug = require('debug');
+import http from 'http';
+import app from './src/index';
 
-/**
- * Module dependencies.
- */
+const debug = _debug('vis-network:server');
 
-const debug = require('debug')('vis-network:server');
-const http = require('http');
-const app = require('./src/index');
+const port = normalizePort(process.env.PORT || '3000');
+app.set('port', port);
+
+const server = http.createServer(app);
+
+server.listen(port);
+server.on('error', onError);
+server.on('listening', onListening);
+
 
 /**
  * Normalize a port into a number, string, or false.
  */
-function normalizePort(val) {
-  const newPort = parseInt(val, 10);
+function normalizePort(val: number | string | boolean) {
+  const newPort = parseInt(val as string, 10);
 
   if (Number.isNaN(newPort)) {
     // named pipe
@@ -27,15 +33,10 @@ function normalizePort(val) {
   return false;
 }
 
-const port = normalizePort(process.env.PORT || '3000');
-app.set('port', port);
-
-const server = http.createServer(app);
-
 /**
  * Event listener for HTTP server "error" event.
  */
-function onError(error) {
+function onError(error: any) {
   if (error.syscall !== 'listen') {
     throw error;
   }
@@ -69,7 +70,3 @@ function onListening() {
     : `port ${addr.port}`;
   debug(`Listening on ${bind}`);
 }
-
-server.listen(port);
-server.on('error', onError);
-server.on('listening', onListening);
