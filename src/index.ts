@@ -6,7 +6,7 @@ import responseUtil from 'src/util/response';
 
 import * as homeController from 'src/controller/home';
 import * as movieController from 'src/controller/movie';
-require('express-async-errors');
+require('express-async-errors'); // handle promise, async/await error automatically
 
 
 const app = express();
