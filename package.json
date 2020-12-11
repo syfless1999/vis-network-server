@@ -8,6 +8,7 @@
     "debug": "^4.3.1",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "express-async-errors": "^3.1.1",
     "http-errors": "^1.8.0",
     "lodash": "^4.17.20",
     "morgan": "^1.10.0",
@@ -15,7 +16,9 @@
   },
   "scripts": {
     "dev": "nodemon",
-    "start": "ts-node -r tsconfig-paths/register ./app.ts"
+    "watch": "ts-node -r tsconfig-paths/register ./app.ts",
+    "start": "tsc && NODE_PATH=dist/ node ./dist/app.js",
+    "build": "tsc"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.2",

@@ -6,6 +6,8 @@ import responseUtil from 'src/util/response';
 
 import * as homeController from 'src/controller/home';
 import * as movieController from 'src/controller/movie';
+require('express-async-errors');
+
 
 const app = express();
 
@@ -19,8 +21,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/', homeController.index);
 app.get('/movies/total', movieController.getTotal);
 
-app.use(function (err: any, req: express.Request, res: express.Response, next: express.NextFunction) {
-  if (err && err.status) {
+app.use(function (err: Error, req: express.Request, res: express.Response, next: express.NextFunction) {
+  if (err) {
     responseUtil.writeError(res, err);
   } else next(err);
 });
