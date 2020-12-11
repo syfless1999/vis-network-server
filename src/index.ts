@@ -4,8 +4,8 @@ import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 import responseUtil from 'src/util/response';
 
-import indexRouter from 'src/route/index';
-import movieRouter from 'src/route/movie';
+import * as homeController from 'src/controller/home';
+import * as movieController from 'src/controller/movie';
 
 const app = express();
 
@@ -15,8 +15,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
-app.use('/movies', movieRouter);
+// route
+app.get('/', homeController.index);
+app.get('/movies/total', movieController.getTotal);
 
 app.use(function (err: any, req: express.Request, res: express.Response, next: express.NextFunction) {
   if (err && err.status) {
