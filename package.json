@@ -17,8 +17,7 @@
     "neo4j-driver": "^4.2.1"
   },
   "scripts": {
-    "dev": "nodemon",
-    "watch": "ts-node -r tsconfig-paths/register ./app.ts",
+    "watch": "nodemon && ts-node -r tsconfig-paths/register ./app.ts",
     "start": "tsc && NODE_PATH=dist/ node ./dist/app.js",
     "build": "tsc"
   },
