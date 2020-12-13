@@ -1,9 +1,15 @@
-import neo4j, { Session } from 'neo4j-driver';
+import neo4j, { Session, SessionMode } from 'neo4j-driver';
 import { Request } from 'express';
 import config from 'src/config';
 
 export interface Neo4jContext extends Request {
   neo4jSession?: Session;
+}
+export interface Neo4jSessionConfig {
+  defaultAccessMode?: SessionMode;
+  bookmarks?: string | string[];
+  fetchSize?: number;
+  database?: string;
 }
 
 const driver = neo4j.driver(
@@ -14,11 +20,11 @@ const driver = neo4j.driver(
   ),
 );
 
-export const getSession = (context: Neo4jContext) => {
+export const getSession = (context: Neo4jContext, config?: Neo4jSessionConfig) => {
   if (context.neo4jSession) {
     return context.neo4jSession;
   }
-  context.neo4jSession = driver.session();
+  context.neo4jSession = driver.session(config);
   return context.neo4jSession;
 };
 
