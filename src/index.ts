@@ -2,10 +2,11 @@ import express from 'express';
 import path from 'path';
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
-import responseUtil from 'src/util/response';
 
-import * as homeController from 'src/controller/home';
-import * as movieController from 'src/controller/movie';
+import responseUtil from 'src/util/response';
+import homeRouter from 'src/route/home';
+import movieRouter from 'src/route/movie';
+
 require('express-async-errors'); // handle promise, async/await error automatically
 
 const app = express();
@@ -17,8 +18,8 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // route
-app.get('/', homeController.index);
-app.get('/movies/total', movieController.getTotal);
+app.use(homeRouter);
+app.use(movieRouter);
 
 app.use(function (err: Error, req: express.Request, res: express.Response, next: express.NextFunction) {
   if (err) {
