@@ -3,6 +3,6 @@ import * as  movieController from 'src/controller/movie'
 
 const router = Router();
 
-router.get('/', movieController.getTotal);
+router.get('/total', movieController.getTotal);
 
 export default router;

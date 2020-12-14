@@ -18,8 +18,8 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // route
-app.use(homeRouter);
-app.use(movieRouter);
+app.use('/', homeRouter);
+app.use('/movie', movieRouter);
 
 app.use(function (err: Error, req: express.Request, res: express.Response, next: express.NextFunction) {
   if (err) {
