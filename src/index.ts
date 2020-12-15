@@ -6,6 +6,7 @@ import morgan from 'morgan';
 import responseUtil from 'src/util/response';
 import homeRouter from 'src/route/home';
 import movieRouter from 'src/route/movie';
+import userRouter from 'src/route/user';
 
 require('express-async-errors'); // handle promise, async/await error automatically
 
@@ -20,6 +21,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // route
 app.use('/', homeRouter);
 app.use('/movie', movieRouter);
+app.use('/user', userRouter);
 
 app.use(function (err: Error, req: express.Request, res: express.Response, next: express.NextFunction) {
   if (err) {
