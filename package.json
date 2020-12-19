@@ -14,7 +14,8 @@
     "lodash": "^4.17.20",
     "mongoose": "^5.11.7",
     "morgan": "^1.10.0",
-    "neo4j-driver": "^4.2.1"
+    "neo4j-driver": "^4.2.1",
+    "socket.io": "^3.0.4"
   },
   "scripts": {
     "watch": "nodemon && ts-node -r tsconfig-paths/register ./app.ts",
