@@ -1,5 +1,6 @@
 import _debug = require('debug');
 import http from 'http';
+import socketHandler from 'src/socketHandler';
 import app from './src/index';
 
 const debug = _debug('vis-network:server');
@@ -13,6 +14,11 @@ server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
 
+/**
+ * websocket config
+ */
+const io = require("socket.io")(server, { cors: true });
+io.on('connection', socketHandler);
 
 /**
  * Normalize a port into a number, string, or false.

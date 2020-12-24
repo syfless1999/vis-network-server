@@ -8,6 +8,6 @@ export const getTotal = (req: Request, res: Response) => {
       const names = result.records.map((record) => record.get('m.tagline'));
       res.status(200).send(JSON.stringify(names));
     }).catch((e) => {
-      console.error(e);
+      res.status(500).send('error neo4j');
     });
 }
