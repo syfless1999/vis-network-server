@@ -1,10 +1,12 @@
 import { Socket } from 'socket.io';
 
+const io = require('socket.io')(null, { cors: true });
+io.on('connection', socketHandler);
+
 function socketHandler(socket: Socket) {
-  console.log('happy connected')
+  console.log('connect on')
 
   socket.on('chat message', (msg: string) => {
-    console.log(msg)
     socket.emit('chat message', `message from socket server ${msg}`)
   });
 
@@ -13,4 +15,4 @@ function socketHandler(socket: Socket) {
   });
 }
 
-export default socketHandler;
+export default io;

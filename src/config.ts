@@ -6,5 +6,6 @@ const config = {
   neo4j_username: process.env.NEO4j_DATABASE_USERNAME,
   neo4j_password: process.env.NEO4j_DATABASE_PASSWORD,
   mongodb_url: process.env.MONGODB_DATABASE_URL,
+  need_update_datasource: process.env.NEED_UPDATE_DATASOURCE,
 };
 export default config;

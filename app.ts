@@ -1,24 +1,36 @@
 import _debug = require('debug');
 import http from 'http';
-import socketHandler from 'src/socketHandler';
-import app from './src/index';
+import io from 'src/websocket';
+import app from './src/express';
+import jobs from './src/cron';
 
 const debug = _debug('vis-network:server');
 
 const port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
+/**
+ * express app load
+ */
 const server = http.createServer(app);
+
+/**
+ * socket.io listen
+ */
+io.listen(server);
 
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
 
 /**
- * websocket config
+ * cron task start
  */
-const io = require("socket.io")(server, { cors: true });
-io.on('connection', socketHandler);
+jobs.forEach((job) => {
+  if (job) {
+    job.start();
+  }
+})
 
 /**
  * Normalize a port into a number, string, or false.

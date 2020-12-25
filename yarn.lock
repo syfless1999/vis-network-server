@@ -65,6 +65,14 @@
   resolved "https://registry.npm.taobao.org/@types/cors/download/@types/cors-2.8.9.tgz?cache=0&sync_timestamp=1608024009401&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2F%40types%2Fcors%2Fdownload%2F%40types%2Fcors-2.8.9.tgz#4bd1fcac72eca8d5bec93e76c7fdcbdc1bc2cd4a"
   integrity sha1-S9H8rHLsqNW+yT52x/3L3BvCzUo=
 
+"@types/cron@^1.7.2":
+  version "1.7.2"
+  resolved "https://registry.npm.taobao.org/@types/cron/download/@types/cron-1.7.2.tgz#e9fb420da616920dae82d13adfca53282ffaab6e"
+  integrity sha1-6ftCDaYWkg2ugtE638pTKC/6q24=
+  dependencies:
+    "@types/node" "*"
+    moment ">=2.14.0"
+
 "@types/debug@^4.1.5":
   version "4.1.5"
   resolved "https://registry.npm.taobao.org/@types/debug/download/@types/debug-4.1.5.tgz?cache=0&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2F%40types%2Fdebug%2Fdownload%2F%40types%2Fdebug-4.1.5.tgz#b14efa8852b7768d898906613c23f688713e02cd"
@@ -458,6 +466,13 @@ create-require@^1.1.0:
   version "1.1.1"
   resolved "https://registry.npm.taobao.org/create-require/download/create-require-1.1.1.tgz#c1d7e8f1e5f6cfc9ff65f9cd352d37348756c333"
   integrity sha1-wdfo8eX2z8n/ZfnNNS03NIdWwzM=
+
+cron@^1.8.2:
+  version "1.8.2"
+  resolved "https://registry.npm.taobao.org/cron/download/cron-1.8.2.tgz#4ac5e3c55ba8c163d84f3407bde94632da8370ce"
+  integrity sha1-SsXjxVuowWPYTzQHvelGMtqDcM4=
+  dependencies:
+    moment-timezone "^0.5.x"
 
 crypto-random-string@^2.0.0:
   version "2.0.0"
@@ -1031,6 +1046,18 @@ minimist@^1.2.0:
   version "1.2.5"
   resolved "https://registry.npm.taobao.org/minimist/download/minimist-1.2.5.tgz#67d66014b66a6a8aaa0c083c5fd58df4e4e97602"
   integrity sha1-Z9ZgFLZqaoqqDAg8X9WN9OTpdgI=
+
+moment-timezone@^0.5.x:
+  version "0.5.32"
+  resolved "https://registry.npm.taobao.org/moment-timezone/download/moment-timezone-0.5.32.tgz?cache=0&sync_timestamp=1605362236711&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fmoment-timezone%2Fdownload%2Fmoment-timezone-0.5.32.tgz#db7677cc3cc680fd30303ebd90b0da1ca0dfecc2"
+  integrity sha1-23Z3zDzGgP0wMD69kLDaHKDf7MI=
+  dependencies:
+    moment ">= 2.9.0"
+
+"moment@>= 2.9.0", moment@>=2.14.0:
+  version "2.29.1"
+  resolved "https://registry.npm.taobao.org/moment/download/moment-2.29.1.tgz?cache=0&sync_timestamp=1601983423917&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fmoment%2Fdownload%2Fmoment-2.29.1.tgz#b2be769fa31940be9eeea6469c075e35006fa3d3"
+  integrity sha1-sr52n6MZQL6e7qZGnAdeNQBvo9M=
 
 mongodb@3.6.3:
   version "3.6.3"
