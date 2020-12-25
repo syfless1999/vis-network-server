@@ -1,19 +1,24 @@
-import express from 'express';
+import express, { Router } from 'express';
 import path from 'path';
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
+import bodyParser from 'body-parser';
 
 import responseUtil from 'src/util/response';
 import homeRouter from 'src/route/home';
 import movieRouter from 'src/route/movie';
 import userRouter from 'src/route/user';
+import dataSourceRouter from 'src/route/datasource';
 
-require('express-async-errors'); // handle promise, async/await error automatically
+// handle promise, async/await error automatically
+require('express-async-errors');
 
 const app = express();
 
 app.use(morgan('dev'));
 app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -32,9 +37,13 @@ app.all('*', function (req, res, next) {
 });
 
 // route
-app.use('/', homeRouter);
-app.use('/movie', movieRouter);
-app.use('/user', userRouter);
+const apiRouter = Router();
+apiRouter.use('/', homeRouter);
+apiRouter.use('/movie', movieRouter);
+apiRouter.use('/user', userRouter);
+apiRouter.use('/datasource', dataSourceRouter);
+
+app.use('/api', apiRouter);
 
 app.use(function (err: Error, req: express.Request, res: express.Response, next: express.NextFunction) {
   if (err) {
