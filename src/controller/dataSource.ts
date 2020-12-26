@@ -50,6 +50,6 @@ export const getList = (req: Request, res: Response) => {
  * check what datasource is not completed, and update the data of it
  */
 export const updateDataSourceList = () => {
-  const d = new Date();
-  console.log('At One Minutes:', d);
+  // const d = new Date();
+  // console.log('At One Minutes:', d);
 };

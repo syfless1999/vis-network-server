@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import * as  dataSourceController from 'src/controller/dataSource'
+import * as  dataSourceController from 'src/controller/datasource'
 
 const router = Router();
 

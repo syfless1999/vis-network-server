@@ -1,5 +1,5 @@
 import { CronJob } from 'cron';
-import { updateDataSourceList } from 'src/controller/dataSource'
+import { updateDataSourceList } from 'src/controller/datasource'
 import config from 'src/config';
 
 const updateDataSourceJob =

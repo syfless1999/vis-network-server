@@ -56,7 +56,7 @@ const dataSourceSchema = new mongoose.Schema({
   },
 });
 
-const DataSource = mongoose.model('DataSource', dataSourceSchema);
+const DataSource = mongoose.model<DataSourceDocument>('DataSource', dataSourceSchema);
 
 
 export default DataSource;
