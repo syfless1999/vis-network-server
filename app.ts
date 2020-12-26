@@ -26,11 +26,7 @@ server.on('listening', onListening);
 /**
  * cron task start
  */
-jobs.forEach((job) => {
-  if (job) {
-    job.start();
-  }
-})
+jobs.forEach((job) => job && job.start())
 
 /**
  * Normalize a port into a number, string, or false.
