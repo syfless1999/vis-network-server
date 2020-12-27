@@ -8,12 +8,14 @@ export enum DataScale {
 }
 
 export interface NodeFeature {
-  count: number;
+  total: number;
+  current: number;
   param: Array<string>;
 }
 
 export interface EdgeFeature {
-  count: number;
+  total: number;
+  current: number;
   param: Array<string>;
 }
 export interface ExpandSource {
@@ -27,7 +29,6 @@ export interface DataSourceDocument extends Document {
   url: string;
   node: NodeFeature;
   edge: EdgeFeature;
-  progress: number;
   scale?: DataScale;
   needExpand: boolean;
   expandSource?: ExpandSource;
@@ -37,14 +38,15 @@ const dataSourceSchema = new mongoose.Schema({
   name: String,
   url: String,
   node: {
-    count: Number,
+    total: Number,
+    current: Number,
     param: [String],
   },
   edge: {
-    count: Number,
+    total: Number,
+    current: Number,
     param: [String],
   },
-  progress: Number,
   scale: {
     default: DataScale.HUNDRED,
     type: String,
