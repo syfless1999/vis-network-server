@@ -72,40 +72,40 @@ interface DataSourceView {
 }
 const updateNodeDataSource = async (dsView: DataSourceView) => {
   const { node, _id } = dsView;
-  const { total: nowTotal, current } = node;
-  console.log('dsView node')
-  console.log(dsView.node)
-  const nowEnd = current + config.update_datasource_interval;
 
   async.auto({
     get_data: async function (cb) {
+      const { current } = node;
+      const end = current + config.update_datasource_interval;
       try {
         const { body } = await request.get(dsView.url).query({
           nodeStart: current,
-          nodeEnd: nowEnd,
+          nodeEnd: end,
         });
-        console.log('body');
-        console.log(body.total, body.end);
-        cb(null, body);
+        cb(null, body.node);
       } catch (error) {
         cb(error);
       }
     },
-    update_total: ['get_data', function (results, cb) {
-      const { get_data: data } = results;
-      const { total, end } = data;
-      DataSource.findByIdAndUpdate(_id, {
-        $set: {
-          'node.total': total,
-          'node.current': end,
-        }
-      }, null, (err, res) => {
-        if (err) return err;
-        console.log(res);
-      });
+    update_total: ['get_data', async function (results, cb) {
+      try {
+        const { get_data: nodeData } = results;
+        const { total, end: realEnd } = nodeData;
+        await DataSource.findByIdAndUpdate(_id, {
+          $set: {
+            'node.total': total,
+            'node.current': Number(realEnd) + 1,
+          }
+        });
+      } catch (error) {
+        cb(error)
+      }
     }],
     append_nodes: ['get_data', function (results, cb) {
-      // console.log('append_nodes');
+      const { get_data: nodeData } = results;
+      const { data } = nodeData;
+      // todo
+      console.log(data)
     }],
   }, (err, res) => {
     err && console.log(`err${err}`);

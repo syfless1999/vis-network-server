@@ -6,6 +6,7 @@ const { mongodb_url: url } = config;
 mongoose.connect(url, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
+  useFindAndModify: false,
 });
 
 mongoose.connection.on('connected', function () {
