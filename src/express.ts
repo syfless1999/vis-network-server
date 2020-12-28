@@ -1,5 +1,4 @@
 import express, { Router } from 'express';
-import path from 'path';
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 import bodyParser from 'body-parser';
@@ -7,7 +6,6 @@ import bodyParser from 'body-parser';
 import responseUtil from 'src/util/response';
 import homeRouter from 'src/route/home';
 import movieRouter from 'src/route/movie';
-import userRouter from 'src/route/user';
 import dataSourceRouter from 'src/route/datasource';
 
 // handle promise, async/await error automatically
@@ -37,7 +35,6 @@ app.all('*', function (req, res, next) {
 const apiRouter = Router();
 apiRouter.use('/', homeRouter);
 apiRouter.use('/movie', movieRouter);
-apiRouter.use('/user', userRouter);
 apiRouter.use('/datasource', dataSourceRouter);
 
 app.use('/api', apiRouter);
