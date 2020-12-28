@@ -20,11 +20,15 @@ const driver = neo4j.driver(
   ),
 );
 
-export const getSession = (context: Neo4jContext, config?: Neo4jSessionConfig) => {
-  if (context.neo4jSession) {
+export const getSession = (context?: Neo4jContext, config?: Neo4jSessionConfig) => {
+  if (context && context.neo4jSession) {
     return context.neo4jSession;
   }
-  context.neo4jSession = driver.session(config);
-  return context.neo4jSession;
+  const session = driver.session(config);
+  if (context) {
+    context.neo4jSession = session;
+  }
+  return session;
 };
 
+export default driver;

@@ -4,6 +4,7 @@ import request from 'superagent';
 import async from 'async';
 import DataSource from 'src/model/DataSource';
 import config from 'src/config';
+import { getSession } from 'src/db/neo4jDriver';
 
 /**
  * <http>
@@ -55,23 +56,8 @@ export const getList = (req: Request, res: Response) => {
   })
 }
 
-
-
-interface DataSourceView {
-  _id: string;
-  name: string;
-  url: string;
-  node: {
-    total: number;
-    current: number;
-  };
-  edge: {
-    total: number;
-    current: number;
-  }
-}
-const updateNodeDataSource = async (dsView: DataSourceView) => {
-  const { node, _id } = dsView;
+const updateNodeDataSource = async (dsView: any) => {
+  const { node, _id, name } = dsView;
 
   async.auto({
     get_data: async function (cb) {
@@ -87,9 +73,28 @@ const updateNodeDataSource = async (dsView: DataSourceView) => {
         cb(error);
       }
     },
-    update_total: ['get_data', async function (results, cb) {
+    append_nodes: ['get_data', async function (results, cb) {
+      const { get_data: nodeData } = results;
+      const { data } = nodeData;
+
+      const session = getSession();
+      const txc = session.beginTransaction();
+      try {
+        const nodeCreateTasks = data.map((node: any) => txc.run(`CREATE (n:${name} $node)`, { node }));
+        await Promise.all(nodeCreateTasks);
+        await txc.commit();
+        cb(null, null);
+      } catch (error) {
+        cb(error);
+        await txc.rollback();
+      } finally {
+        session.close();
+      }
+    }],
+    update_total: ['append_nodes', async function (results, cb) {
       try {
         const { get_data: nodeData } = results;
+        console.log(nodeData)
         const { total, end: realEnd } = nodeData;
         await DataSource.findByIdAndUpdate(_id, {
           $set: {
@@ -101,18 +106,13 @@ const updateNodeDataSource = async (dsView: DataSourceView) => {
         cb(error)
       }
     }],
-    append_nodes: ['get_data', function (results, cb) {
-      const { get_data: nodeData } = results;
-      const { data } = nodeData;
-      // todo
-      console.log(data)
-    }],
   }, (err, res) => {
     err && console.log(`err${err}`);
     res && console.log(res);
   });
 }
-const updateEdgeDataSource = async (dsView: DataSourceView) => {
+
+const updateEdgeDataSource = async (dsView: any) => {
   // TODO
   return await 'good';
 }
@@ -127,8 +127,7 @@ const updateEdgeDataSource = async (dsView: DataSourceView) => {
 export const updateDataSourceCron = async () => {
   const d = new Date();
   const list = await DataSource
-    .where('url')
-    .select('_id name url node.total node.current edge.total edge.current')
+    .where('url').exists(true)
     .exec();
 
   const nodeUpdateList = list.filter(ds =>
@@ -142,11 +141,11 @@ export const updateDataSourceCron = async () => {
   );
 
   nodeUpdateList.map(async (ds) => {
-    await updateNodeDataSource(ds as DataSourceView);
-    return await updateEdgeDataSource(ds as DataSourceView);
+    await updateNodeDataSource(ds);
+    return await updateEdgeDataSource(ds);
   });
   edgeUpdateList.map(async (ds) => {
-    return await updateEdgeDataSource(ds as DataSourceView);
+    return await updateEdgeDataSource(ds);
   });
 
   // const res = await request.get(list[0].url).query({ nodeStart: 7, nodeEnd: 10 });

@@ -5,7 +5,7 @@ import config from 'src/config';
 const updateDataSourceJob =
   config.need_update_datasource == 'true' ?
     new CronJob(
-      '*/3 * * * * *', updateDataSourceCron
+      '*/10 * * * * *', updateDataSourceCron
     ) : null;
 
 
