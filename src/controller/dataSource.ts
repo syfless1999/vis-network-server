@@ -17,12 +17,12 @@ export const create = (req: Request, res: Response) => {
     url: body.url,
     node: {
       total: 0,
-      current: 0,
+      current: 1,
       param: body.nodeParam.split(','),
     },
     edge: {
       total: 0,
-      current: 0,
+      current: 1,
       param: body.edgeParam.split(','),
     },
     scale: body.scale,
@@ -59,10 +59,10 @@ export const getList = (req: Request, res: Response) => {
 const updateNodeDataSource = async (dsView: any) => {
   const { node, _id, name } = dsView;
 
-  async.auto({
+  return async.auto({
     get_data: async function (cb) {
       const { current } = node;
-      const end = current + config.update_datasource_interval;
+      const end = current + config.update_datasource_interval - 1;
       try {
         const { body } = await request.get(dsView.url).query({
           nodeStart: current,
@@ -112,8 +112,67 @@ const updateNodeDataSource = async (dsView: any) => {
 }
 
 const updateEdgeDataSource = async (dsView: any) => {
-  // TODO
-  return await 'good';
+  const { edge, _id, name } = dsView;
+  return async.auto({
+    get_data: async function (cb) {
+      const { current } = edge;
+      const end = current + config.update_datasource_interval - 1;
+      try {
+        const { body } = await request.get(dsView.url).query({
+          edgeStart: current,
+          edgeEnd: end,
+        });
+        cb(null, body.edge);
+      } catch (error) {
+        cb(error);
+      }
+    },
+    append_edges: ['get_data', async function (results, cb) {
+      const { get_data: edgeData } = results;
+      const { data } = edgeData;
+
+      const session = getSession();
+      const txc = session.beginTransaction();
+      try {
+        const edgeCreateTasks = data.map(
+          (edge: any) => {
+            const { target, source, type, ...params } = edge;
+            return txc.run(
+              `Match (s1:${name} {id:$target}),(s2:${name} {id:$source}) Create (s1)-[r:${type} $params]->(s2)`, {
+              target: target,
+              source: source,
+              type: type,
+              params,
+            });
+          });
+        await Promise.all(edgeCreateTasks);
+        await txc.commit();
+        cb(null, null);
+      } catch (error) {
+        cb(error);
+        await txc.rollback();
+      } finally {
+        session.close();
+      }
+    }],
+    update_total: ['append_edges', async function (results, cb) {
+      try {
+        const { get_data: edgeData } = results;
+        const { total, end: realEnd } = edgeData;
+        await DataSource.findByIdAndUpdate(_id, {
+          $set: {
+            'edge.total': total,
+            'edge.current': Number(realEnd) + 1,
+          }
+        });
+      } catch (error) {
+        cb(error)
+      }
+    }]
+  }, (err, res) => {
+    err && console.log(`err${err}`);
+    res && console.log(res);
+  })
 }
 
 /**
@@ -131,18 +190,19 @@ export const updateDataSourceCron = async () => {
 
   const nodeUpdateList = list.filter(ds =>
     ds.node.total == 0 ||
-    ds.node.total > ds.node.current
+    ds.node.total >= ds.node.current
   );
   const edgeUpdateList = list.filter(ds =>
     ds.node.total != 0 &&
-    ds.node.total == ds.node.current &&
-    ds.edge.total > ds.edge.current
+    ds.node.total < ds.node.current && (
+      ds.edge.total == 0 ||
+      ds.edge.total >= ds.edge.current
+    )
   );
-  nodeUpdateList.map(async (ds) => {
-    await updateNodeDataSource(ds);
-    return await updateEdgeDataSource(ds);
-  });
-  edgeUpdateList.map(async (ds) => {
-    return await updateEdgeDataSource(ds);
-  });
+  const nodeTasks = nodeUpdateList.map((ds) => updateNodeDataSource(ds));
+  const edgeTasks = edgeUpdateList.map((ds) => updateEdgeDataSource(ds));
+
+  await Promise.all([...nodeTasks, ...edgeTasks]);
+  console.log('恭喜');
+
 };
