@@ -1,10 +1,12 @@
 import { Request, Response } from 'express';
-import mongoose from 'mongoose';
 import request from 'superagent';
+import { Socket } from 'socket.io';
 import async from 'async';
+import { CronJob } from 'cron';
 import DataSource from 'src/model/DataSource';
 import config from 'src/config';
 import { getSession } from 'src/db/neo4jDriver';
+import { retrieve } from 'src/service/datasource';
 
 /**
  * <http>
@@ -40,30 +42,43 @@ export const create = (req: Request, res: Response) => {
   });
 }
 
+
 /**
  * <websocket>
- * get the list of datasource
+ * datasource socket(list or single)
  */
-export const getList = (req: Request, res: Response) => {
-  DataSource.find((err, dataSources) => {
-    if (err) {
-      res.status(500).json({ message: 'fail' });
+export const dataSourceHandler = async (socket: Socket) => {
+  let dataSourceList = await retrieve();
+  socket.emit('list', {
+    message: 'success',
+    list: dataSourceList,
+  });
+  const checkListUpdate = new CronJob(
+    '*/3 * * * * *', async () => {
+      const newDataSourceList = await retrieve();
+      const needUpdate = newDataSourceList.some((newDs, index) =>
+        newDs.node.current != dataSourceList[index].node.current ||
+        newDs.edge.current != dataSourceList[index].edge.current
+      )
+      if (needUpdate) {
+        socket.emit('list', {
+          message: 'success',
+          list: newDataSourceList,
+        });
+        dataSourceList = newDataSourceList;
+      }
     }
-    res.json({
-      message: 'success',
-      dataSources,
-    });
-  })
+  );
+  checkListUpdate.start();
 }
 
-const updateNodeDataSource = async (dsView: any) => {
-  const { node, _id, name } = dsView;
-
+const updateNodeDataSource = (dsView: any) => {
   return async.auto({
     get_data: async function (cb) {
-      const { current } = node;
-      const end = current + config.update_datasource_interval - 1;
       try {
+        const { node } = dsView;
+        const { current } = node;
+        const end = current + config.update_datasource_interval - 1;
         const { body } = await request.get(dsView.url).query({
           nodeStart: current,
           nodeEnd: end,
@@ -74,6 +89,7 @@ const updateNodeDataSource = async (dsView: any) => {
       }
     },
     append_nodes: ['get_data', async function (results, cb) {
+      const { name } = dsView;
       const { get_data: nodeData } = results;
       const { data } = nodeData;
 
@@ -93,6 +109,7 @@ const updateNodeDataSource = async (dsView: any) => {
     }],
     update_total: ['append_nodes', async function (results, cb) {
       try {
+        const { _id } = dsView;
         const { get_data: nodeData } = results;
         const { total, end: realEnd } = nodeData;
         await DataSource.findByIdAndUpdate(_id, {
@@ -106,15 +123,15 @@ const updateNodeDataSource = async (dsView: any) => {
       }
     }],
   }, (err, res) => {
-    err && console.log(`err${err}`);
+    err && console.error(`err${err}`);
     res && console.log(res);
   });
 }
 
 const updateEdgeDataSource = async (dsView: any) => {
-  const { edge, _id, name } = dsView;
   return async.auto({
     get_data: async function (cb) {
+      const { edge } = dsView;
       const { current } = edge;
       const end = current + config.update_datasource_interval - 1;
       try {
@@ -128,6 +145,7 @@ const updateEdgeDataSource = async (dsView: any) => {
       }
     },
     append_edges: ['get_data', async function (results, cb) {
+      const { name } = dsView;
       const { get_data: edgeData } = results;
       const { data } = edgeData;
 
@@ -157,6 +175,7 @@ const updateEdgeDataSource = async (dsView: any) => {
     }],
     update_total: ['append_edges', async function (results, cb) {
       try {
+        const { _id } = dsView;
         const { get_data: edgeData } = results;
         const { total, end: realEnd } = edgeData;
         await DataSource.findByIdAndUpdate(_id, {
@@ -183,11 +202,9 @@ const updateEdgeDataSource = async (dsView: any) => {
  *  2. what strategy is comfortable for update several ds of different scale?
  */
 export const updateDataSourceCron = async () => {
-  const d = new Date();
   const list = await DataSource
     .where('url').exists(true)
     .exec();
-
   const nodeUpdateList = list.filter(ds =>
     ds.node.total == 0 ||
     ds.node.total >= ds.node.current
@@ -199,8 +216,6 @@ export const updateDataSourceCron = async () => {
       ds.edge.total >= ds.edge.current
     )
   );
-  const nodeTasks = nodeUpdateList.map((ds) => updateNodeDataSource(ds));
-  const edgeTasks = edgeUpdateList.map((ds) => updateEdgeDataSource(ds));
-
-  await Promise.all([...nodeTasks, ...edgeTasks]);
+  nodeUpdateList.map(async (ds) => await updateNodeDataSource(ds));
+  edgeUpdateList.map(async (ds) => await updateEdgeDataSource(ds));
 };
