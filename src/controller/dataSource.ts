@@ -203,6 +203,4 @@ export const updateDataSourceCron = async () => {
   const edgeTasks = edgeUpdateList.map((ds) => updateEdgeDataSource(ds));
 
   await Promise.all([...nodeTasks, ...edgeTasks]);
-  console.log('恭喜');
-
 };
