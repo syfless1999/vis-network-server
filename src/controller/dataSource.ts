@@ -1,197 +1,51 @@
 import { Request, Response } from 'express';
-import request from 'superagent';
 import { Socket } from 'socket.io';
-import async from 'async';
-import { CronJob } from 'cron';
+import { dsIO } from 'src/websocket';
 import DataSource from 'src/model/DataSource';
-import config from 'src/config';
-import { getSession } from 'src/db/neo4jDriver';
-import { retrieve } from 'src/service/datasource';
+import { retrieveDataSourceList, updateEdgeDataSource, updateNodeDataSource } from 'src/service/datasource';
 
 /**
  * <http>
  * create one datasource
  */
-export const create = (req: Request, res: Response) => {
-  const { body } = req;
-  const newDataSource = new DataSource({
-    name: body.name,
-    url: body.url,
-    node: {
-      total: 0,
-      current: 1,
-      param: body.nodeParam.split(','),
-    },
-    edge: {
-      total: 0,
-      current: 1,
-      param: body.edgeParam.split(','),
-    },
-    scale: body.scale,
-    needExpand: body.needExpand,
-    expandSource: body.expandSource,
-  });
-  newDataSource.save((err) => {
-    if (err) {
-      console.error(err);
-      res.status(500).json({ message: 'fail' });
-    }
-    res.json({
-      message: 'success',
+export const create = async (req: Request, res: Response, next: (err: Error) => void) => {
+  try {
+    const { body } = req;
+    const newDataSource = new DataSource({
+      name: body.name,
+      url: body.url,
+      node: {
+        total: 0,
+        current: 0,
+        param: body.nodeParam.split(','),
+      },
+      edge: {
+        total: 0,
+        current: 0,
+        param: body.edgeParam.split(','),
+      },
+      scale: body.scale,
+      needExpand: body.needExpand,
+      expandSource: body.expandSource,
     });
-  });
+    await newDataSource.save();
+    res.json({ message: 'success' });
+  } catch (error) {
+    next(error);
+  }
 }
-
 
 /**
  * <websocket>
  * datasource socket(list or single)
  */
-export const dataSourceHandler = async (socket: Socket) => {
-  let dataSourceList = await retrieve();
+export const dataSourceSocketHandler = async (socket: Socket) => {
+  let dataSourceList = await retrieveDataSourceList();
+  socket.join('datasource_list_room');
   socket.emit('list', {
     message: 'success',
     list: dataSourceList,
   });
-  const checkListUpdate = new CronJob(
-    '*/3 * * * * *', async () => {
-      const newDataSourceList = await retrieve();
-      const needUpdate = newDataSourceList.some((newDs, index) =>
-        newDs.node.current != dataSourceList[index].node.current ||
-        newDs.edge.current != dataSourceList[index].edge.current
-      )
-      if (needUpdate) {
-        socket.emit('list', {
-          message: 'success',
-          list: newDataSourceList,
-        });
-        dataSourceList = newDataSourceList;
-      }
-    }
-  );
-  checkListUpdate.start();
-}
-
-const updateNodeDataSource = (dsView: any) => {
-  return async.auto({
-    get_data: async function (cb) {
-      try {
-        const { node } = dsView;
-        const { current } = node;
-        const end = current + config.update_datasource_interval - 1;
-        const { body } = await request.get(dsView.url).query({
-          nodeStart: current,
-          nodeEnd: end,
-        });
-        cb(null, body.node);
-      } catch (error) {
-        cb(error);
-      }
-    },
-    append_nodes: ['get_data', async function (results, cb) {
-      const { name } = dsView;
-      const { get_data: nodeData } = results;
-      const { data } = nodeData;
-
-      const session = getSession();
-      const txc = session.beginTransaction();
-      try {
-        const nodeCreateTasks = data.map((node: any) => txc.run(`CREATE (n:${name} $node)`, { node }));
-        await Promise.all(nodeCreateTasks);
-        await txc.commit();
-        cb(null, null);
-      } catch (error) {
-        cb(error);
-        await txc.rollback();
-      } finally {
-        session.close();
-      }
-    }],
-    update_total: ['append_nodes', async function (results, cb) {
-      try {
-        const { _id } = dsView;
-        const { get_data: nodeData } = results;
-        const { total, end: realEnd } = nodeData;
-        await DataSource.findByIdAndUpdate(_id, {
-          $set: {
-            'node.total': total,
-            'node.current': Number(realEnd) + 1,
-          }
-        });
-      } catch (error) {
-        cb(error)
-      }
-    }],
-  }, (err, res) => {
-    err && console.error(`err${err}`);
-    res && console.log(res);
-  });
-}
-
-const updateEdgeDataSource = async (dsView: any) => {
-  return async.auto({
-    get_data: async function (cb) {
-      const { edge } = dsView;
-      const { current } = edge;
-      const end = current + config.update_datasource_interval - 1;
-      try {
-        const { body } = await request.get(dsView.url).query({
-          edgeStart: current,
-          edgeEnd: end,
-        });
-        cb(null, body.edge);
-      } catch (error) {
-        cb(error);
-      }
-    },
-    append_edges: ['get_data', async function (results, cb) {
-      const { name } = dsView;
-      const { get_data: edgeData } = results;
-      const { data } = edgeData;
-
-      const session = getSession();
-      const txc = session.beginTransaction();
-      try {
-        const edgeCreateTasks = data.map(
-          (edge: any) => {
-            const { target, source, type, ...params } = edge;
-            return txc.run(
-              `Match (s1:${name} {id:$target}),(s2:${name} {id:$source}) Create (s1)-[r:${type} $params]->(s2)`, {
-              target: target,
-              source: source,
-              type: type,
-              params,
-            });
-          });
-        await Promise.all(edgeCreateTasks);
-        await txc.commit();
-        cb(null, null);
-      } catch (error) {
-        cb(error);
-        await txc.rollback();
-      } finally {
-        session.close();
-      }
-    }],
-    update_total: ['append_edges', async function (results, cb) {
-      try {
-        const { _id } = dsView;
-        const { get_data: edgeData } = results;
-        const { total, end: realEnd } = edgeData;
-        await DataSource.findByIdAndUpdate(_id, {
-          $set: {
-            'edge.total': total,
-            'edge.current': Number(realEnd) + 1,
-          }
-        });
-      } catch (error) {
-        cb(error)
-      }
-    }]
-  }, (err, res) => {
-    err && console.log(`err${err}`);
-    res && console.log(res);
-  })
 }
 
 /**
@@ -202,20 +56,31 @@ const updateEdgeDataSource = async (dsView: any) => {
  *  2. what strategy is comfortable for update several ds of different scale?
  */
 export const updateDataSourceCron = async () => {
-  const list = await DataSource
-    .where('url').exists(true)
-    .exec();
-  const nodeUpdateList = list.filter(ds =>
-    ds.node.total == 0 ||
-    ds.node.total >= ds.node.current
-  );
-  const edgeUpdateList = list.filter(ds =>
-    ds.node.total != 0 &&
-    ds.node.total < ds.node.current && (
-      ds.edge.total == 0 ||
-      ds.edge.total >= ds.edge.current
-    )
-  );
-  nodeUpdateList.map(async (ds) => await updateNodeDataSource(ds));
-  edgeUpdateList.map(async (ds) => await updateEdgeDataSource(ds));
+  try {
+    const list = await retrieveDataSourceList();
+    const nodeUpdateList = list.filter(ds =>
+      ds.node.total == 0 ||
+      ds.node.total > ds.node.current
+    );
+    const edgeUpdateList = list.filter(ds =>
+      ds.node.total != 0 &&
+      ds.node.total <= ds.node.current && (
+        ds.edge.total == 0 ||
+        ds.edge.total > ds.edge.current
+      )
+    );
+    const needUpdate = nodeUpdateList.length || edgeUpdateList.length;
+    if (needUpdate) {
+      const nodeUpdateTasks = nodeUpdateList.map((ds) => updateNodeDataSource(ds));
+      const edgeUpdateTasks = edgeUpdateList.map((ds) => updateEdgeDataSource(ds));
+      await Promise.all([...nodeUpdateTasks, ...edgeUpdateTasks]);
+      const newDataSourceList = await retrieveDataSourceList();
+      dsIO.to('datasource_list_room').emit('list', {
+        message: 'success',
+        list: newDataSourceList,
+      });
+    }
+  } catch (error) {
+    console.error(error)
+  }
 };

@@ -1,4 +1,4 @@
-import neo4j, { Session, SessionMode } from 'neo4j-driver';
+import neo4j, { Session, SessionMode, Transaction } from 'neo4j-driver';
 import { Request } from 'express';
 import config from 'src/config';
 
@@ -30,5 +30,18 @@ export const getSession = (context?: Neo4jContext, config?: Neo4jSessionConfig) 
   }
   return session;
 };
+
+export const runTransaction = async (callback: (txc: Transaction) => Promise<void>) => {
+  const session = getSession();
+  const txc = session.beginTransaction();
+  try {
+    await callback(txc);
+    await txc.commit();
+  } catch (error) {
+    await txc.rollback();
+  } finally {
+    await session.close();
+  }
+}
 
 export default driver;
