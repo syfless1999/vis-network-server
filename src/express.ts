@@ -4,6 +4,7 @@ import morgan from 'morgan';
 import bodyParser from 'body-parser';
 import homeRouter from 'src/route/home';
 import dataSourceRouter from 'src/route/datasource';
+import taskRouter from 'src/route/task';
 
 // handle promise, async/await error automatically
 require('express-async-errors');
@@ -32,6 +33,7 @@ app.all('*', function (req, res, next) {
 const apiRouter = Router();
 apiRouter.use('/', homeRouter);
 apiRouter.use('/datasource', dataSourceRouter);
+apiRouter.use('/task', taskRouter);
 
 app.use('/api', apiRouter);
 

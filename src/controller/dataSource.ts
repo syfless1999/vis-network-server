@@ -3,6 +3,7 @@ import { Socket } from 'socket.io';
 import { dsIO } from 'src/websocket';
 import DataSource from 'src/model/DataSource';
 import { retrieveDataSourceList, updateEdgeDataSource, updateNodeDataSource } from 'src/service/datasource';
+import { nextTick } from 'process';
 
 /**
  * <http>
@@ -30,6 +31,22 @@ export const create = async (req: Request, res: Response, next: (err: Error) => 
     });
     await newDataSource.save();
     res.json({ message: 'success' });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * <http>
+ * retrieve list of datasource
+ */
+export const retrieve = async (req: Request, res: Response, next: (err: Error) => void) => {
+  try {
+    let dataSourceList = await retrieveDataSourceList();
+    res.json({
+      message: 'success',
+      list: dataSourceList,
+    });
   } catch (error) {
     next(error);
   }
