@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import Task from 'src/model/Task';
+import { retrieveDataSource } from 'src/service/datasource';
 import { retrieveTaskList } from 'src/service/task';
 
 
@@ -18,6 +19,17 @@ export const retrieve = async (req: Request, res: Response, next: (error: Error)
 export const create = async (req: Request, res: Response, next: (error: Error) => any) => {
   try {
     const { body } = req;
+    const { dataSourceId } = body;
+    const ds = await retrieveDataSource(dataSourceId);
+    if (ds) {
+      console.log(ds);
+      res.json({
+        message: 'success',
+      })
+    } else {
+      console.log('no ds')
+      next(new Error('no ds'));
+    }
     // TODO:
     // const newDataSource = new Task({
     //   name: body.name,
@@ -37,8 +49,8 @@ export const create = async (req: Request, res: Response, next: (error: Error) =
     //   expandSource: body.expandSource,
     // });
     // await newDataSource.save();
-    res.json({ message: 'success' });
+    // res.json({ message: 'success' });
   } catch (error) {
-
+    next(error);
   }
 }

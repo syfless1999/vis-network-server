@@ -24,7 +24,6 @@ export interface ExpandSource {
 }
 
 export interface DataSourceDocument extends Document {
-  id: string;
   name: string;
   url: string;
   node: NodeFeature;

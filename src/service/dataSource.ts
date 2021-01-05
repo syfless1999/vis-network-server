@@ -11,6 +11,11 @@ export const retrieveDataSourceList = async () => {
   return list;
 }
 
+export const retrieveDataSource = async (dataSourceId: string) => {
+  const ds = await DataSource.findById(dataSourceId).exec();
+  return ds;
+}
+
 export const updateNodeDataSource = async (dsView: any) => {
   const { node, name, _id } = dsView;
   const { body } = await request.get(dsView.url).query({
