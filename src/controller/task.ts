@@ -22,12 +22,10 @@ export const create = async (req: Request, res: Response, next: (error: Error) =
     const { dataSourceId } = body;
     const ds = await retrieveDataSource(dataSourceId);
     if (ds) {
-      console.log(ds);
       res.json({
         message: 'success',
       })
     } else {
-      console.log('no ds')
       next(new Error('no ds'));
     }
     // TODO:
