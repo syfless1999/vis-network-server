@@ -2,5 +2,5 @@ import { Request, Response } from 'express';
 
 
 export const index = (req: Request, res: Response, next: () => any) => {
-  res.json({ msg: 'homepage' });
+  res.send('<h1>welcome vis-network</h1>');
 }
