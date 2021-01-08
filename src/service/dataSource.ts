@@ -20,7 +20,7 @@ export const updateNodeDataSource = async (dsView: any) => {
   const { node, name, _id } = dsView;
   const { body } = await request.get(dsView.url).query({
     nodeStart: node.current + 1,
-    nodeEnd: node.current + config.update_datasource_interval,
+    nodeEnd: node.current + config.datasource_fetch_length,
   });
   const { data, total: nodeTotal, end: realEnd } = body.node;
   const { total: edgeTotal } = body.edge;
@@ -42,7 +42,7 @@ export const updateEdgeDataSource = async (dsView: any) => {
   const { edge, name, _id } = dsView;
   const { body } = await request.get(dsView.url).query({
     edgeStart: edge.current + 1,
-    edgeEnd: edge.current + config.update_datasource_interval,
+    edgeEnd: edge.current + config.datasource_fetch_length,
   });
   const { data, total, end: realEnd } = body.edge;
 

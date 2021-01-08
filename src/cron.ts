@@ -1,14 +1,34 @@
 import { CronJob } from 'cron';
 import { updateDataSourceCron } from 'src/controller/datasource'
+
 import config from 'src/config';
+import { handleTaskCron } from './controller/task';
 
-const updateDataSourceJob =
-  config.need_update_datasource == 'true' ?
+
+function initCronJob(needCron: boolean = false, cron: string, controller: () => Promise<void>): CronJob {
+  const cronJob = needCron == true ?
     new CronJob(
-      '*/10 * * * * *', updateDataSourceCron
+      cron,
+      controller,
     ) : null;
+  return cronJob;
+}
 
+const updateDataSourceJob = initCronJob(
+  config.need_update_datasource,
+  config.datasource_update_cron,
+  updateDataSourceCron,
+);
 
-export default [
+const handleTaskJob = initCronJob(
+  config.need_task_handle,
+  config.task_handle_cron,
+  handleTaskCron,
+);
+
+const cronJobs: Array<CronJob> = [
   updateDataSourceJob,
+  handleTaskJob,
 ];
+
+export default cronJobs;

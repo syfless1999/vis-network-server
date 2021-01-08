@@ -2,7 +2,7 @@ import _debug = require('debug');
 import http from 'http';
 import io from 'src/websocket';
 import app from './src/express';
-import jobs from './src/cron';
+import cronJobs from './src/cron';
 
 const debug = _debug('vis-network:server');
 
@@ -26,7 +26,7 @@ server.on('listening', onListening);
 /**
  * cron task start
  */
-jobs.forEach((job) => job && job.start())
+cronJobs.forEach((job) => job && job.start())
 
 /**
  * Normalize a port into a number, string, or false.

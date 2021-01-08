@@ -1,12 +1,13 @@
 import { Request, Response } from 'express';
+import { runTransaction } from 'src/db/neo4jDriver';
 import Task, { TaskClusterType } from 'src/model/Task';
 import { retrieveDataSource } from 'src/service/datasource';
-import { retrieveTaskList } from 'src/service/task';
+import { retrieveTaskWithDataSourceList } from 'src/service/task';
 
 
 export const retrieve = async (req: Request, res: Response, next: (error: Error) => any) => {
   try {
-    const list = await retrieveTaskList();
+    const list = await retrieveTaskWithDataSourceList();
     res.json({
       msg: 'homepage',
       list,
@@ -109,3 +110,15 @@ export const create = async (req: Request, res: Response, next: (error: Error) =
     next(error);
   }
 }
+
+
+export const handleTaskCron = async () => {
+  const list = await retrieveTaskWithDataSourceList();
+  for (const task of list) {
+    const { name } = task.dataSource[0];
+    runTransaction(async (txc) => {
+      // TODO
+      // const result = await txc.run(`MATCH (n:${name}) RETURN n`);
+    });
+  }
+};
