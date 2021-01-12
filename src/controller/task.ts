@@ -3,7 +3,7 @@ import { runTransaction } from 'src/db/neo4jDriver';
 import Task, { TaskClusterType } from 'src/model/Task';
 import { retrieveDataSource } from 'src/service/datasource';
 import { retrieveTaskWithDataSourceList } from 'src/service/task';
-
+import HCluster from 'src/util/clusterMethod';
 
 export const retrieve = async (req: Request, res: Response, next: (error: Error) => any) => {
   try {
@@ -117,8 +117,10 @@ export const handleTaskCron = async () => {
   for (const task of list) {
     const { name } = task.dataSource[0];
     runTransaction(async (txc) => {
-      // TODO
-      // const result = await txc.run(`MATCH (n:${name}) RETURN n`);
+      const result = await txc.run(`MATCH (n1:${name})-[e]->(n2:${name}) RETURN COUNT(n1) as nodeCount, COUNT(e) as edgeCount`);
+      const nodeCount = result.records[0].get('nodeCount').low;
+      const edgeCount = result.records[0].get('edgeCount').low;
+      console.log(HCluster.add(nodeCount, edgeCount));
     });
   }
 };

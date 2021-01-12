@@ -38,6 +38,7 @@ export const runTransaction = async (callback: (txc: Transaction) => Promise<voi
     await callback(txc);
     await txc.commit();
   } catch (error) {
+    console.error(error);
     await txc.rollback();
   } finally {
     await session.close();
