@@ -112,15 +112,34 @@ export const create = async (req: Request, res: Response, next: (error: Error) =
 }
 
 
+const handleEachTask = async (task: any) => {
+  const { dataSource } = task;
+  const { name, node: { total } } = dataSource[0];
+  let current = 0;
+  let step = 10;
+  runTransaction(async (txc) => {
+    while (current < total) {
+      let [start, end, length] = [current, current + step, step];
+      // 1. 创建社团
+      // 2. 给节点标记社团
+      const result = await txc.run(
+        `MATCH (n:${name}) RETURN n as node`
+      );
+    }
+
+    // result.records.forEach(record => {
+    //   console.log(record.get('node'));
+    // });
+    // const nodeCount = result.records[0].get('nodeCount').low;
+    // const edgeCount = result.records[0].get('edgeCount').low;
+    // console.log(HCluster.add(nodeCount, edgeCount));
+  });
+}
 export const handleTaskCron = async () => {
   const list = await retrieveTaskWithDataSourceList();
   for (const task of list) {
-    const { name } = task.dataSource[0];
-    runTransaction(async (txc) => {
-      const result = await txc.run(`MATCH (n1:${name})-[e]->(n2:${name}) RETURN COUNT(n1) as nodeCount, COUNT(e) as edgeCount`);
-      const nodeCount = result.records[0].get('nodeCount').low;
-      const edgeCount = result.records[0].get('edgeCount').low;
-      console.log(HCluster.add(nodeCount, edgeCount));
-    });
+    if (task.progress !== 100) {
+      handleEachTask(task);
+    }
   }
 };
