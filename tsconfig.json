@@ -7,14 +7,14 @@
     "noImplicitAny": true,
     "moduleResolution": "node",
     "sourceMap": true,
-    "declarationMap": true,
     "outDir": "dist",
     "baseUrl": ".",
+    "resolveJsonModule": true,
     "paths": {
       "*": ["node_modules/*"],
       "src/*": ["src/*"]
     }
   },
-  "include": ["src/**/*", "app.ts"],
+  "include": ["src/**/*", "app.ts"]
   // "files": ["./app.ts"]
 }

@@ -5,6 +5,7 @@ import bodyParser from 'body-parser';
 import homeRouter from 'src/route/home';
 import dataSourceRouter from 'src/route/datasource';
 import taskRouter from 'src/route/task';
+import networkRouter from 'src/route/network';
 
 // handle promise, async/await error automatically
 require('express-async-errors');
@@ -34,6 +35,7 @@ const apiRouter = Router();
 apiRouter.use('/', homeRouter);
 apiRouter.use('/datasource', dataSourceRouter);
 apiRouter.use('/task', taskRouter);
+apiRouter.use('/network', networkRouter);
 
 app.use('/api', apiRouter);
 

@@ -3,13 +3,13 @@ import { runTransaction } from 'src/db/neo4jDriver';
 import Task, { TaskClusterType } from 'src/model/Task';
 import { retrieveDataSource } from 'src/service/datasource';
 import { retrieveTaskWithDataSourceList } from 'src/service/task';
-import HCluster from 'src/util/clusterMethod';
+// import HCluster from 'src/util/clusterMethod';
 
 export const retrieve = async (req: Request, res: Response, next: (error: Error) => any) => {
   try {
     const list = await retrieveTaskWithDataSourceList();
     res.json({
-      msg: 'homepage',
+      message: 'success',
       list,
     });
   } catch (error) {
@@ -139,7 +139,7 @@ export const handleTaskCron = async () => {
   const list = await retrieveTaskWithDataSourceList();
   for (const task of list) {
     if (task.progress !== 100) {
-      handleEachTask(task);
+      // handleEachTask(task);
     }
   }
 };
