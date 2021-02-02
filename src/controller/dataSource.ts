@@ -45,7 +45,7 @@ export const retrieve = async (req: Request, res: Response, next: (err: Error) =
     let dataSourceList = await retrieveDataSourceList();
     res.json({
       message: 'success',
-      list: dataSourceList,
+      data: dataSourceList,
     });
   } catch (error) {
     next(error);

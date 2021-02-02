@@ -10,7 +10,7 @@ export const retrieve = async (req: Request, res: Response, next: (error: Error)
     const list = await retrieveTaskWithDataSourceList();
     res.json({
       message: 'success',
-      list,
+      data: list,
     });
   } catch (error) {
     next(error);
