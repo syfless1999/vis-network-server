@@ -8,6 +8,7 @@ export interface Node extends Community {
 }
 export interface HeadCluster extends Community {
   nodes: string[];
+  nodeNum: number;
   edgeNum: number;
 }
 export interface Cluster extends Node, HeadCluster { }
@@ -23,6 +24,10 @@ export type Layer<T extends Node | HeadCluster> = {
   nodes: T[];
   edges: (T extends HeadCluster ? ClusterEdge : Edge)[];
 }
-export interface LayerNetwork {
-  [index: number]: Layer<Cluster | Node>;
+export type LayerNetwork = (Layer<HeadCluster | Node>)[];
+
+// front-end data
+export interface DisplayNetwork {
+  nodes: Community[];
+  edges: Edge[];
 }
