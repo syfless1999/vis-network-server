@@ -112,7 +112,8 @@
           "a3"
         ],
         "nodeNum": 3,
-        "edgeNum": 3
+        "edgeNum": 3,
+        "level": 1
       },
       {
         "id": "B",
@@ -123,7 +124,8 @@
           "b3"
         ],
         "nodeNum": 3,
-        "edgeNum": 2
+        "edgeNum": 2,
+        "level": 1
       },
       {
         "id": "C",
@@ -133,7 +135,8 @@
           "c2"
         ],
         "nodeNum": 2,
-        "edgeNum": 1
+        "edgeNum": 1,
+        "level": 1
       },
       {
         "id": "D",
@@ -144,7 +147,8 @@
           "d3"
         ],
         "nodeNum": 3,
-        "edgeNum": 2
+        "edgeNum": 2,
+        "level": 1
       }
     ],
     "edges": [
@@ -174,7 +178,8 @@
           "B"
         ],
         "nodeNum": 6,
-        "edgeNum": 7
+        "edgeNum": 7,
+        "level": 2
       },
       {
         "id": "2",
@@ -183,7 +188,8 @@
           "B"
         ],
         "nodeNum": 5,
-        "edgeNum": 5
+        "edgeNum": 5,
+        "level": 2
       }
     ],
     "edges": [
