@@ -184,8 +184,8 @@
       {
         "id": "2",
         "nodes": [
-          "A",
-          "B"
+          "C",
+          "D"
         ],
         "nodeNum": 5,
         "edgeNum": 5,
