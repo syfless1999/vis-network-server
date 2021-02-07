@@ -32,3 +32,5 @@ export interface DisplayNetwork {
   nodes: (Node | HeadCluster)[];
   edges: Edge[];
 }
+export type NodeMap = Map<string, Node | HeadCluster>;
+export type EdgeMap = Map<string, Edge>;
