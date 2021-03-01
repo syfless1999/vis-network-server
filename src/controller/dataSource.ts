@@ -3,7 +3,6 @@ import { Socket } from 'socket.io';
 import { dsIO } from 'src/websocket';
 import DataSource from 'src/model/DataSource';
 import { retrieveDataSourceList, updateEdgeDataSource, updateNodeDataSource } from 'src/service/datasource';
-import { nextTick } from 'process';
 
 /**
  * <http>

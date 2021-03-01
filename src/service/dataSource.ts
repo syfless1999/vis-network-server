@@ -26,7 +26,15 @@ export const updateNodeDataSource = async (dsView: any) => {
   const { total: edgeTotal } = body.edge;
 
   await runTransaction(async (txc) => {
-    const nodeCreateTasks = data.map((node: any) => txc.run(`CREATE (n:${name} $node)`, { node }));
+    const nodeCreateTasks = data.map((node: any) =>
+      txc.run(`CREATE (n:${name} $node)`, {
+        node: {
+          ...node,
+          level: 0,
+          features: [],
+        }
+      }),
+    );
     await Promise.all(nodeCreateTasks);
   });
   await DataSource.findByIdAndUpdate(_id, {

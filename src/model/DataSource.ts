@@ -7,13 +7,13 @@ export enum DataScale {
   MILLION = 'million',
 }
 
-export interface NodeFeature {
+export interface NodeProperty {
   total: number;
   current: number;
   param: Array<string>;
 }
 
-export interface EdgeFeature {
+export interface EdgeProperty {
   total: number;
   current: number;
   param: Array<string>;
@@ -26,8 +26,8 @@ export interface ExpandSource {
 export interface DataSourceDocument extends Document {
   name: string;
   url: string;
-  node: NodeFeature;
-  edge: EdgeFeature;
+  node: NodeProperty;
+  edge: EdgeProperty;
   scale?: DataScale;
   needExpand: boolean;
   expandSource?: ExpandSource;

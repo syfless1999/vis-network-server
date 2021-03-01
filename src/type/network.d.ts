@@ -1,7 +1,14 @@
 // source data
+
+export interface Feature {
+  property: string;
+  desc: string;
+}
 export interface Community {
   id: string;
   [key: string]: unknown;
+  level: number;
+  features: Feature[];
 }
 export interface Node extends Community {
   clusterId: string;
@@ -10,7 +17,6 @@ export interface HeadCluster extends Community {
   nodes: string[];
   nodeNum: number;
   edgeNum: number;
-  level: number;
 }
 export interface Cluster extends Node, HeadCluster { }
 export interface Edge {
