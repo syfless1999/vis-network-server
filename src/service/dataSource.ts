@@ -1,7 +1,8 @@
 import request from 'superagent';
 import DataSource from 'src/model/DataSource';
 import config from 'src/config';
-import { runTransaction } from 'src/db/neo4jDriver';
+import { saveEdges, saveNodes } from 'src/model/Network';
+import { Node } from 'src/type/network'
 
 export const retrieveDataSourceList = async () => {
   const list = await DataSource
@@ -25,18 +26,11 @@ export const updateNodeDataSource = async (dsView: any) => {
   const { data, total: nodeTotal, end: realEnd } = body.node;
   const { total: edgeTotal } = body.edge;
 
-  await runTransaction(async (txc) => {
-    const nodeCreateTasks = data.map((node: any) =>
-      txc.run(`CREATE (n:${name} $node)`, {
-        node: {
-          ...node,
-          level: 0,
-          features: [],
-        }
-      }),
-    );
-    await Promise.all(nodeCreateTasks);
-  });
+  await saveNodes(data.map((node: Node) => ({
+    ...node,
+    level: 0,
+    features: [] as string[],
+  })), name);
   await DataSource.findByIdAndUpdate(_id, {
     $set: {
       'node.total': nodeTotal,
@@ -53,21 +47,7 @@ export const updateEdgeDataSource = async (dsView: any) => {
     edgeEnd: edge.current + config.datasource_fetch_length,
   });
   const { data, total, end: realEnd } = body.edge;
-
-  await runTransaction(async (txc) => {
-    const edgeCreateTasks = data.map(
-      (edge: any) => {
-        const { target, source, type, ...params } = edge;
-        return txc.run(
-          `Match (s1:${name} {id:$target}),(s2:${name} {id:$source}) Create (s1)-[r:${type} $params]->(s2)`, {
-          target: target,
-          source: source,
-          type: type,
-          params,
-        });
-      });
-    await Promise.all(edgeCreateTasks);
-  });
+  await saveEdges(data, name);
   await DataSource.findByIdAndUpdate(_id, {
     $set: {
       'edge.total': total,

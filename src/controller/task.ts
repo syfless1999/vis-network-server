@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import Task, { TaskClusterType } from 'src/model/Task';
 import { retrieveDataSource } from 'src/service/datasource';
-import { retrieveTaskWithDataSourceList, handleTask } from 'src/service/task';
+import { retrieveTaskWithDataSourceList, handleTask, updateTaskProgress } from 'src/service/task';
 // import HCluster from 'src/util/clusterMethod';
 
 export const retrieve = async (req: Request, res: Response, next: (error: Error) => any) => {
@@ -114,7 +114,8 @@ export const handleTaskCron = async () => {
   const list = await retrieveTaskWithDataSourceList();
   for (const task of list) {
     if (task.progress !== 100) {
-      handleTask(task);
+      await handleTask(task);
+      await updateTaskProgress(task, 100);
     }
   }
 };

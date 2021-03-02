@@ -24,11 +24,7 @@ export const retrieveNetworkAndEdgeByLevelAndLabel = async (label: string, level
     );
     edges.records.forEach(record => {
       const edge = record.get('edge');
-      result.edges.push({
-        source: edge.start.low,
-        target: edge.end.low,
-        ...edge.properties,
-      });
+      result.edges.push(edge.properties);
     });
   });
   return result;

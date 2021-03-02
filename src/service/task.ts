@@ -1,5 +1,5 @@
-import { runTransaction } from 'src/db/neo4jDriver';
-import Task from 'src/model/Task';
+import { saveEdges, saveLayer, saveNodes } from 'src/model/Network';
+import Task, { TaskClusterType } from 'src/model/Task';
 import { testClusterNetwork } from 'src/util/testCluster';
 import { retrieveNetworkAndEdgeByLevelAndLabel } from './network';
 
@@ -21,8 +21,16 @@ export const retrieveTaskWithDataSourceList = async () => {
 
 export const handleTask = async (task: any) => {
   const { dataSource } = task;
-  const { name, node: { total } } = dataSource[0];
+  const { name } = dataSource[0];
   const layer = await retrieveNetworkAndEdgeByLevelAndLabel(name, 0);
   const layerNetwork = testClusterNetwork(layer, 3);
-  console.log(layerNetwork);
+  for (let index = 1; index < layerNetwork.length; index++) {
+    const layer = layerNetwork[index];
+    await saveLayer(layer, name);
+  }
+}
+
+export const updateTaskProgress = async (task: any, newProgress: number) => {
+  const { _id } = task;
+  await Task.findByIdAndUpdate(_id, { progress: newProgress });
 }

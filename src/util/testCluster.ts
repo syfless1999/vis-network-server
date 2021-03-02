@@ -38,7 +38,7 @@ export const testClusterLayer = (layer: Layer<Node | HeadCluster>): Layer<HeadCl
       id: cluster.id,
       nodes,
       level: targetLevel,
-      features: [{ property: 'sex', desc: 'male' }],
+      features: ['sex male 80%', 'age old 50%', 'name shang 10%'],
       nodeNum: nodeNum,
       edgeNum: 0,
     });
