@@ -9,6 +9,10 @@ export const retrieveTaskList = async () => {
   return list;
 }
 
+export const retrieveOneTask = async (taskId: string) => {
+  return await Task.findById(taskId).exec();
+};
+
 export const retrieveTaskWithDataSourceList = async () => {
   const aggregate = Task.aggregate();
   const list = await aggregate.lookup({
@@ -20,9 +24,14 @@ export const retrieveTaskWithDataSourceList = async () => {
   return list;
 }
 
+export const updateTask = async (task: any, newProperties: object) => {
+  const { _id } = task;
+  await Task.findByIdAndUpdate(_id, newProperties);
+}
+
 export const handleTask = async (task: any) => {
   const { dataSource, _id } = task;
-  const taskId= objectId2String(_id);
+  const taskId = objectId2String(_id);
   const { name } = dataSource[0];
   const layer = await retrieveSourceNetwork(name);
   const layerNetwork = testClusterNetwork(layer, 3);
@@ -35,9 +44,8 @@ export const handleTask = async (task: any) => {
     };
     await saveLayer(layerWithTaskId, name);
   }
-}
-
-export const updateTaskProgress = async (task: any, newProgress: number) => {
-  const { _id } = task;
-  await Task.findByIdAndUpdate(_id, { progress: newProgress });
+  await updateTask(task, {
+    progress: 100,
+    largestLevel: layerNetwork.length - 1,
+  });
 }

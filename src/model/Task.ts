@@ -15,6 +15,7 @@ export interface TaskDocument extends Document {
   needCustomizeSimilarityApi: boolean;
   similarityApi: string;
   updateCycle: number;
+  largestLevel: number;
 }
 
 const taskSchema = new mongoose.Schema({
@@ -26,6 +27,7 @@ const taskSchema = new mongoose.Schema({
   needCustomizeSimilarityApi: Boolean,
   similarityApi: String,
   updateCycle: Number,
+  largestLevel: Number,
 });
 
 

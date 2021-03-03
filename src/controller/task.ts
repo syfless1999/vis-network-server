@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import Task, { TaskClusterType } from 'src/model/Task';
 import { retrieveDataSource } from 'src/service/datasource';
-import { retrieveTaskWithDataSourceList, handleTask, updateTaskProgress } from 'src/service/task';
+import { retrieveTaskWithDataSourceList, handleTask } from 'src/service/task';
 // import HCluster from 'src/util/clusterMethod';
 
 export const retrieve = async (req: Request, res: Response, next: (error: Error) => any) => {
@@ -76,13 +76,14 @@ export const create = async (req: Request, res: Response, next: (error: Error) =
     } = body;
 
     if (!await checkReqBody(body)) {
-      return next(new Error('params not legal'));
+      throw new Error('params not legal');
     }
 
     const newTask = new Task({
       dataSourceId,
       clusterType,
       progress: 0,
+      largestLevel: 0,
       needCustomizeSimilarityApi,
       similarityApi,
       updateCycle,
@@ -115,7 +116,6 @@ export const handleTaskCron = async () => {
   for (const task of list) {
     if (task.progress !== 100) {
       await handleTask(task);
-      await updateTaskProgress(task, 100);
     }
   }
 };
