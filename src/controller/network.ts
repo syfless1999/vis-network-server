@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import * as network from 'src/type/network';
 import networkData from 'src/mock/networkData.json';
-import { retrieveNetworkAndEdgeByLevelAndLabel } from 'src/service/network';
+import { retrieveNetworkByTaskIdAndLevel } from 'src/service/network';
+import { string2ObjectId } from 'src/util/mongodb';
 
 /**
  * http [ temporary ]
@@ -28,8 +29,8 @@ export const retrieve = async (req: Request, res: Response, next: (error: Error)
  */
 export const retrieveLayer = async (req: Request, res: Response, next: (error: Error) => any) => {
   try {
-    const { params: { datasourceName }, query: { level } } = req;
-    const layer = retrieveNetworkAndEdgeByLevelAndLabel(datasourceName, Number(level));
+    const { params: { taskId }, query: { level } } = req;
+    const layer = await retrieveNetworkByTaskIdAndLevel(taskId, Number(level));
     res.json({
       message: 'success',
       data: [layer],

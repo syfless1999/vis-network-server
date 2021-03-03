@@ -1,7 +1,7 @@
 import request from 'superagent';
 import DataSource from 'src/model/DataSource';
 import config from 'src/config';
-import { saveEdges, saveNodes } from 'src/model/Network';
+import { saveEdges, saveNodes } from 'src/service/Network';
 import { Node } from 'src/type/network'
 
 export const retrieveDataSourceList = async () => {

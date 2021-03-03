@@ -13,6 +13,7 @@ export interface HeadCluster extends Community {
   nodes: string[];
   nodeNum: number;
   edgeNum: number;
+  taskId?: string;
 }
 export interface Cluster extends Node, HeadCluster { }
 export interface Edge {
