@@ -1,8 +1,8 @@
 import { saveLayer } from 'src/service/Network';
 import Task from 'src/model/Task';
 import { testClusterNetwork } from 'src/util/testCluster';
-import { retrieveSourceNetwork } from './network';
-import { objectId2String } from 'src/util/mongodb';
+import { retrieveCompleteSourceNetwork } from './network';
+import { objectId2String, string2ObjectId } from 'src/util/mongodb';
 
 export const retrieveTaskList = async () => {
   const list = await Task.find().exec();
@@ -10,7 +10,18 @@ export const retrieveTaskList = async () => {
 }
 
 export const retrieveOneTask = async (taskId: string) => {
-  return await Task.findById(taskId).exec();
+  const aggregate = Task.aggregate([{
+    $match: {
+      _id: string2ObjectId(taskId),
+    }
+  }]);
+  const tasks = await aggregate.lookup({
+    from: 'datasources',
+    localField: 'dataSourceId',
+    foreignField: '_id',
+    as: 'dataSource'
+  }).exec();
+  return tasks[0];
 };
 
 export const retrieveTaskWithDataSourceList = async () => {
@@ -33,7 +44,7 @@ export const handleTask = async (task: any) => {
   const { dataSource, _id } = task;
   const taskId = objectId2String(_id);
   const { name } = dataSource[0];
-  const layer = await retrieveSourceNetwork(name);
+  const layer = await retrieveCompleteSourceNetwork(name);
   const layerNetwork = testClusterNetwork(layer, 3);
   for (let index = 1; index < layerNetwork.length; index++) {
     const layer = layerNetwork[index];

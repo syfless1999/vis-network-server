@@ -1,5 +1,6 @@
 import { runTransaction } from 'src/db/neo4jDriver';
 import { Node, HeadCluster, Edge, Layer } from "src/type/network";
+import { uniqueArray } from 'src/util/array';
 
 export const saveNodes = async (nodes: (Node | HeadCluster)[], name: string) => {
   await runTransaction(async (txc) => {
@@ -33,7 +34,7 @@ export const saveLayer = async (layer: Layer<Node | HeadCluster>, name: string) 
   ]);
 }
 
-export const retrieveSourceNetwork = async (label: string): Promise<Layer<Node>> => {
+export const retrieveCompleteSourceNetwork = async (label: string): Promise<Layer<Node>> => {
   const result: Layer<Node> = {
     nodes: [],
     edges: [],
@@ -63,8 +64,47 @@ export const retrieveSourceNetwork = async (label: string): Promise<Layer<Node>>
   return result;
 }
 
+export const retrievePartSourceNetwork = async (label: string, limit: number = 30): Promise<Layer<Node>> => {
+  const result: Layer<Node> = {
+    nodes: [],
+    edges: [],
+  };
+  const nodes: Node[] = [];
+  const edges: Edge[] = [];
+  await runTransaction(async (txc) => {
+    // retrieve nodes and edges at one query
+    const queryRes = await txc.run(
+      `Match (node1:${label} {level:$level})-[edge]->(node2:${label} {level:$level}) return node1, node2, edge limit ${limit}`, {
+      level: 0,
+    });
+    queryRes.records.forEach(record => {
+      const node1 = record.get('node1');
+      const node2 = record.get('node2');
+      const edge = record.get('edge');
+      if (node1.properties.id) {
+        nodes.push({
+          ...node1.properties,
+        });
+      }
+      if (node2.properties.id) {
+        nodes.push({
+          ...node2.properties,
+        });
+      }
+      if (edge.properties.source) {
+        edges.push({
+          ...edge.properties,
+        });
+      }
+    });
+  });
+  return {
+    nodes: uniqueArray(nodes, (n) => n.id),
+    edges,
+  };
+}
+
 export const retrieveNetworkByTaskIdAndLevel = async (taskId: string, level: number): Promise<Layer<Node>> => {
-  // TODO
   const result: Layer<Node> = {
     nodes: [],
     edges: [],
