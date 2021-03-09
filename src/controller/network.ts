@@ -25,7 +25,7 @@ export const retrieve = async (req: Request, res: Response, next: (error: Error)
 /**
  * http
  * @param req 
- * @param res 
+* @param res 
  * @param next 
  */
 export const retrieveLayer = async (req: Request, res: Response, next: (error: Error) => any) => {
@@ -41,7 +41,7 @@ export const retrieveLayer = async (req: Request, res: Response, next: (error: E
     const level = queryLevel == undefined || Number(queryLevel) < 0 ? task.largestLevel : Number(queryLevel);
     let layer: Layer<Node | network.HeadCluster>;
     if (level == 0) {
-      layer = await retrievePartSourceNetwork(task.dataSource[0].name, 5);
+      layer = await retrievePartSourceNetwork(task.dataSource[0].name, 50);
     } else {
       layer = await retrieveNetworkByTaskIdAndLevel(taskId, Number(level));
     }
@@ -51,6 +51,33 @@ export const retrieveLayer = async (req: Request, res: Response, next: (error: E
       message: 'success',
       data: layerNetwork,
     })
+  } catch (error) {
+    next(error);
+  }
+}
+
+export const expandNode = async (req: Request, res: Response, next: (error: Error) => any) => {
+  try {
+    const { body: { displayNetwork, targetId } } = req;
+    console.log('====================================');
+    console.log(displayNetwork.nodes.length);
+    console.log(targetId);
+    console.log('====================================');
+    // TODO
+  } catch (error) {
+    next(error);
+  }
+}
+
+
+export const shrinkNode = async (req: Request, res: Response, next: (error: Error) => any) => {
+  try {
+    const { body: { displayNetwork, targetId } } = req;
+    console.log('====================================');
+    console.log(displayNetwork.nodes.length);
+    console.log(targetId);
+    console.log('====================================');
+    // TODO
   } catch (error) {
     next(error);
   }
