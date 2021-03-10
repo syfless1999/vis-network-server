@@ -1,5 +1,5 @@
 import { Node, HeadCluster, Layer, LayerNetwork } from "src/type/network";
-import { labelPropagation } from '@antv/algorithm';
+import labelPropagation from 'src/util/label-propagation/label-propagation';
 import { isHeadCluster, nodes2Map } from "./network";
 
 /**
