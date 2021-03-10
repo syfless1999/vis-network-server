@@ -7,7 +7,10 @@ import { isHeadCluster, nodes2Map } from "./network";
  * @param layer source nodes and edges
  * @param depth target cluster depth, >= 1
  */
-export const testClusterNetwork = (layer: Layer<Node>, depth: number): LayerNetwork => {
+export const testClusterNetwork = (
+  layer: Layer<Node>,
+  depth: number,
+): LayerNetwork => {
   const layerNetwork = [];
   let currentDepth = 1, currentLayer: Layer<Node | HeadCluster> = layer;
   do {
@@ -20,7 +23,7 @@ export const testClusterNetwork = (layer: Layer<Node>, depth: number): LayerNetw
 export const testClusterLayer = (layer: Layer<Node | HeadCluster>): Layer<HeadCluster> => {
   const targetLevel = layer.nodes.length ? layer.nodes[0].level + 1 : 0;
   const { nodes: sourceNodes } = layer;
-  const lpaResult = labelPropagation(layer, true, 'count');
+  const lpaResult = labelPropagation(layer, true, 'grade');
   const clusterResult: Layer<HeadCluster> = {
     nodes: [],
     edges: [],

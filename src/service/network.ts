@@ -1,6 +1,7 @@
 import { runTransaction } from 'src/db/neo4jDriver';
-import { Node, HeadCluster, Edge, Layer } from "src/type/network";
+import { Node, HeadCluster, Edge, Layer, LayerNetwork } from "src/type/network";
 import { uniqueArray } from 'src/util/array';
+import { isNode, nodes2Map } from 'src/util/network';
 
 export const saveNodes = async (nodes: (Node | HeadCluster)[], name: string) => {
   await runTransaction(async (txc) => {
@@ -15,11 +16,10 @@ export const saveEdges = async (edges: Edge[], name: string) => {
   await runTransaction(async (txc) => {
     const edgeCreateTasks = edges.map(
       (edge) => {
-        const { type, ...params } = edge;
+        const { type = 'edge', ...params } = edge;
+        console.log(`Match (s1:${name} {id:'${params.source}'}),(s2:${name} {id:'${params.target}'}) Create (s1)-[r:${type}]->(s2)`)
         return txc.run(
-          `Match (s1:${name} {id:$source}),(s2:${name} {id:$target}) Create (s1)-[r:${type} $params]->(s2)`, {
-          source: params.source,
-          target: params.target,
+          `Match (s1:${name} {id:'${params.source}'}),(s2:${name} {id:'${params.target}'}) Create (s1)-[r:${type} $params]->(s2)`, {
           params,
         });
       });
@@ -33,6 +33,33 @@ export const saveLayer = async (layer: Layer<Node | HeadCluster>, name: string) 
     saveEdges(layer.edges, name),
   ]);
 }
+
+export const retrieveCrossLayerEdges = (layers: LayerNetwork) => {
+  let currentLevel = layers.length - 1;
+  const edges: Edge[] = [];
+  while (currentLevel > 0) {
+    const currentLayer = layers[currentLevel];
+    const lowLayer = layers[currentLevel - 1];
+    const lowLayerMap = nodes2Map(lowLayer.nodes);
+    currentLayer.nodes.forEach((node) => {
+      const { id, nodes } = node;
+      if (Array.isArray(nodes)) {
+        nodes.forEach((nodeId) => {
+          if (lowLayerMap.has(nodeId)) {
+            const edge = {
+              source: id,
+              target: nodeId,
+              type: 'include',
+            };
+            edges.push(edge);
+          }
+        })
+      }
+    });
+    currentLevel -= 1;
+  }
+  return edges;
+};
 
 export const retrieveCompleteSourceNetwork = async (label: string): Promise<Layer<Node>> => {
   const result: Layer<Node> = {
@@ -128,3 +155,22 @@ export const retrieveNetworkByTaskIdAndLevel = async (taskId: string, level: num
   });
   return result;
 };
+
+export const updateNodes = async (
+  nodes: (Node | HeadCluster)[],
+  updateCallback: (n: Node | HeadCluster) => {
+    [key in keyof (Node | HeadCluster)]?: (Node | HeadCluster)[key]
+  }
+) => {
+  await runTransaction(async (txc) => {
+    nodes.forEach(async (node) => {
+      const { id } = node;
+      const setMap = updateCallback(node);
+      await txc.run(
+        `Match (node {id:$id}) Set node += $map`, {
+        id,
+        map: setMap,
+      });
+    });
+  });
+}

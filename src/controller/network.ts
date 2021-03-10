@@ -25,7 +25,7 @@ export const retrieve = async (req: Request, res: Response, next: (error: Error)
 /**
  * http
  * @param req 
-* @param res 
+ * @param res 
  * @param next 
  */
 export const retrieveLayer = async (req: Request, res: Response, next: (error: Error) => any) => {
@@ -59,10 +59,6 @@ export const retrieveLayer = async (req: Request, res: Response, next: (error: E
 export const expandNode = async (req: Request, res: Response, next: (error: Error) => any) => {
   try {
     const { body: { displayNetwork, targetId } } = req;
-    console.log('====================================');
-    console.log(displayNetwork.nodes.length);
-    console.log(targetId);
-    console.log('====================================');
     // TODO
   } catch (error) {
     next(error);
@@ -73,10 +69,6 @@ export const expandNode = async (req: Request, res: Response, next: (error: Erro
 export const shrinkNode = async (req: Request, res: Response, next: (error: Error) => any) => {
   try {
     const { body: { displayNetwork, targetId } } = req;
-    console.log('====================================');
-    console.log(displayNetwork.nodes.length);
-    console.log(targetId);
-    console.log('====================================');
     // TODO
   } catch (error) {
     next(error);
