@@ -3,9 +3,6 @@ import { Node, HeadCluster, Edge, Layer, LayerNetwork } from "src/type/network";
 import { chunk, uniqueArray } from 'src/util/array';
 import { nodes2Map } from 'src/util/network';
 
-// node/edge save to neo4j bug, need to save intervally
-const writeEdgeInterval = 5;
-
 
 export const saveNodes = async (
   nodes: (Node | HeadCluster)[],

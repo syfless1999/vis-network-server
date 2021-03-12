@@ -14,7 +14,8 @@ const labelPropagation = (
   graphData: GraphData,
   directed: boolean = false,
   weightPropertyName: string = 'weight',
-  maxIteration: number = 1000
+  maxIteration: number = 1000,
+  customizeId?: (oldId: string, index: number) => string,
 ): ClusterData => {
   // the origin data
   const { nodes = [], edges = [] } = graphData;
@@ -125,6 +126,27 @@ const labelPropagation = (
       delete clusters[clusterId];
     }
   });
+
+  if (customizeId) {
+    // change cluster id
+    const idMap: { [oldId: string]: string } = {};
+    const oldClusterIds = Object.keys(clusters);
+    for (let i = 0; i < oldClusterIds.length; i += 1) {
+      const oldId = oldClusterIds[i];
+      const newId = customizeId(oldId, i);
+      idMap[oldId] = newId;
+      clusters[newId] = clusters[oldId];
+      clusters[newId].id = newId;
+      delete clusters[oldId];
+    }
+    // change node's clusterId
+    nodes.forEach((node) => {
+      const { clusterId } = node;
+      if (clusterId) {
+        node.clusterId = idMap[clusterId];
+      }
+    });
+  }
 
   // get the cluster edges
   const clusterEdges: EdgeConfig[] = [];

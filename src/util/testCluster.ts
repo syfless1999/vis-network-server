@@ -15,15 +15,21 @@ export const testClusterNetwork = (
   let currentDepth = 1, currentLayer: Layer<Node | HeadCluster> = layer;
   do {
     layerNetwork.push(currentLayer);
-    currentLayer = testClusterLayer(currentLayer);
+    currentLayer = testClusterLayer(currentLayer, currentDepth);
   } while (currentDepth++ < depth);
   return layerNetwork;
 }
 
-export const testClusterLayer = (layer: Layer<Node | HeadCluster>): Layer<HeadCluster> => {
+export const testClusterLayer = (layer: Layer<Node | HeadCluster>, depth: number = 1): Layer<HeadCluster> => {
   const targetLevel = layer.nodes.length ? layer.nodes[0].level + 1 : 0;
   const { nodes: sourceNodes } = layer;
-  const lpaResult = labelPropagation(layer, true);
+  const lpaResult = labelPropagation(
+    layer,
+    true,
+    undefined,
+    undefined,
+    (_, i) => `${depth}_${i}`,
+  );
   const clusterResult: Layer<HeadCluster> = {
     nodes: [],
     edges: [],
