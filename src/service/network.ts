@@ -1,37 +1,45 @@
 import { runTransaction } from 'src/db/neo4jDriver';
 import { Node, HeadCluster, Edge, Layer, LayerNetwork } from "src/type/network";
-import { uniqueArray } from 'src/util/array';
-import { isNode, nodes2Map } from 'src/util/network';
+import { chunk, uniqueArray } from 'src/util/array';
+import { nodes2Map } from 'src/util/network';
 
-export const saveNodes = async (nodes: (Node | HeadCluster)[], name: string) => {
+// node/edge save to neo4j bug, need to save intervally
+const writeEdgeInterval = 5;
+
+
+export const saveNodes = async (
+  nodes: (Node | HeadCluster)[],
+  name: string,
+) => {
   await runTransaction(async (txc) => {
     const nodeCreateTasks = nodes.map((node: Node) => {
-      txc.run(`CREATE (n:${name} $node)`, { node });
+      txc.run(`CREATE (n:${name} $node)`, {
+        node,
+      });
     });
     await Promise.all(nodeCreateTasks);
   });
 };
 
-export const saveEdges = async (edges: Edge[], name: string) => {
+export const saveEdges = async (
+  edges: Edge[],
+  name: string,
+) => {
   await runTransaction(async (txc) => {
-    const edgeCreateTasks = edges.map(
-      (edge) => {
-        const { type = 'edge', ...params } = edge;
-        console.log(`Match (s1:${name} {id:'${params.source}'}),(s2:${name} {id:'${params.target}'}) Create (s1)-[r:${type}]->(s2)`)
-        return txc.run(
-          `Match (s1:${name} {id:'${params.source}'}),(s2:${name} {id:'${params.target}'}) Create (s1)-[r:${type} $params]->(s2)`, {
-          params,
-        });
+    for (let i = 0; i < edges.length; i += 1) {
+      const edge = edges[i];
+      const { type = 'edge', ...params } = edge;
+      await txc.run(
+        `Match (s1:${name} {id:'${params.source}'}),(s2:${name} {id:'${params.target}'}) Create (s1)-[r:${type} $params]->(s2)`, {
+        params,
       });
-    await Promise.all(edgeCreateTasks);
+    }
   });
 };
 
 export const saveLayer = async (layer: Layer<Node | HeadCluster>, name: string) => {
-  await Promise.all([
-    saveNodes(layer.nodes, name),
-    saveEdges(layer.edges, name),
-  ]);
+  await saveNodes(layer.nodes, name);
+  await saveEdges(layer.edges, name);
 }
 
 export const retrieveCrossLayerEdges = (layers: LayerNetwork) => {

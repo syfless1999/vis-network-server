@@ -23,7 +23,7 @@ export const testClusterNetwork = (
 export const testClusterLayer = (layer: Layer<Node | HeadCluster>): Layer<HeadCluster> => {
   const targetLevel = layer.nodes.length ? layer.nodes[0].level + 1 : 0;
   const { nodes: sourceNodes } = layer;
-  const lpaResult = labelPropagation(layer, true, 'grade');
+  const lpaResult = labelPropagation(layer, true);
   const clusterResult: Layer<HeadCluster> = {
     nodes: [],
     edges: [],
@@ -46,7 +46,9 @@ export const testClusterLayer = (layer: Layer<Node | HeadCluster>): Layer<HeadCl
       edgeNum: 0,
     });
   });
+
   clusterEdges.forEach(edge => {
+    if (edge.source === edge.target) return;
     clusterResult.edges.push({
       source: edge.source,
       target: edge.target,

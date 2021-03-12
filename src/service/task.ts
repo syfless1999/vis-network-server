@@ -48,8 +48,8 @@ export const handleTask = async (task: any) => {
   const layer = await retrieveCompleteSourceNetwork(name);
   // 2. n-cluster network
   const layerNetwork = testClusterNetwork(layer, 3);
-  const completeLayerNetwork = [];
   // 3. data process(add taskId for cluster)
+  const completeLayerNetwork = [];
   for (let index = 1; index < layerNetwork.length; index++) {
     const layer = layerNetwork[index];
     const { nodes, edges } = layer;
@@ -60,9 +60,10 @@ export const handleTask = async (task: any) => {
     completeLayerNetwork.push(layerWithTaskId);
   }
   // 4. save layer network to neo4j
-  completeLayerNetwork.forEach(async (layer) => {
+  for (let i = 0; i < completeLayerNetwork.length; i += 1) {
+    const layer = completeLayerNetwork[i];
     await saveLayer(layer, name);
-  });
+  }
   // 5. create edge from 
   const crossLayerEdges = retrieveCrossLayerEdges(layerNetwork);
 
