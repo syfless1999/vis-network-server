@@ -89,7 +89,8 @@ export const updateDataSourceCron = async () => {
     if (needUpdate) {
       const nodeUpdateTasks = nodeUpdateList.map((ds) => updateNodeDataSource(ds));
       const edgeUpdateTasks = edgeUpdateList.map((ds) => updateEdgeDataSource(ds));
-      await Promise.all([...nodeUpdateTasks, ...edgeUpdateTasks]);
+      await Promise.all(nodeUpdateTasks);
+      await Promise.all(edgeUpdateTasks);
       const newDataSourceList = await retrieveDataSourceList();
       dsIO.to('datasource_list_room').emit('list', {
         message: 'success',

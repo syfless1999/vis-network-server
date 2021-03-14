@@ -40,9 +40,9 @@ export const testClusterLayer = (layer: Layer<Node | HeadCluster>, depth: number
       nodes,
       level: targetLevel,
       features: [
-        { property: 'sex', desc: 'male 80%' },
-        { property: 'age', desc: 'old 50%' },
-        { property: 'name', desc: 'shang 10%' },
+        'sex male 80%',
+        'age old 50%',
+        'name shang 10%',
       ],
       count: cluster.count,
     });
