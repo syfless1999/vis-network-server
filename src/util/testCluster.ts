@@ -1,6 +1,5 @@
 import { Node, HeadCluster, Layer, LayerNetwork } from "src/type/network";
 import labelPropagation from 'src/algorithm/label-propagation';
-import { isHeadCluster, nodes2Map } from "./network";
 
 /**
  * 
@@ -22,7 +21,6 @@ export const testClusterNetwork = (
 
 export const testClusterLayer = (layer: Layer<Node | HeadCluster>, depth: number = 1): Layer<HeadCluster> => {
   const targetLevel = layer.nodes.length ? layer.nodes[0].level + 1 : 0;
-  const { nodes: sourceNodes } = layer;
   const lpaResult = labelPropagation(
     layer,
     true,
@@ -41,7 +39,11 @@ export const testClusterLayer = (layer: Layer<Node | HeadCluster>, depth: number
       id: cluster.id,
       nodes,
       level: targetLevel,
-      features: ['sex male 80%', 'age old 50%', 'name shang 10%'],
+      features: [
+        { property: 'sex', desc: 'male 80%' },
+        { property: 'age', desc: 'old 50%' },
+        { property: 'name', desc: 'shang 10%' },
+      ],
       count: cluster.count,
     });
   });

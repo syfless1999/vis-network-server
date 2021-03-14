@@ -1,10 +1,14 @@
 // source data
 
+export interface Feature {
+  property: string;
+  desc: string;
+}
 export interface Community {
   id: string;
   [key: string]: unknown;
   level: number;
-  features: string[];
+  features: Feature[];
 }
 export interface Node extends Community {
   clusterId: string;
@@ -27,7 +31,7 @@ export type Layer<T extends Node | HeadCluster> = {
   nodes: T[];
   edges: (T extends HeadCluster ? ClusterEdge : Edge)[];
 }
-export type LayerNetwork = (Layer<HeadCluster | Node>)[];
+export type LayerNetwork = (Layer<HeadCluster | Node> | undefined)[];
 
 // front-end data
 export interface DisplayNetwork {
