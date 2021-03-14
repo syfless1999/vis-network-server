@@ -37,19 +37,12 @@ export const testClusterLayer = (layer: Layer<Node | HeadCluster>, depth: number
   const { clusters, clusterEdges } = lpaResult;
   clusters.forEach(cluster => {
     const nodes = cluster.nodes.map(node => node.id);
-    const sourceNodeMap = nodes2Map(sourceNodes);
-    let nodeNum = 0;
-    cluster.nodes.forEach(nodeConfig => {
-      const sourceNode = sourceNodeMap.get(nodeConfig.id);
-      nodeNum += isHeadCluster(sourceNode) ? sourceNode.nodeNum : 1;
-    });
     clusterResult.nodes.push({
       id: cluster.id,
       nodes,
       level: targetLevel,
       features: ['sex male 80%', 'age old 50%', 'name shang 10%'],
-      nodeNum: nodeNum,
-      edgeNum: 0,
+      count: cluster.count,
     });
   });
 

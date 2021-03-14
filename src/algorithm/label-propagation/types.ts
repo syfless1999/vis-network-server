@@ -4,7 +4,7 @@ export type Matrix = number[];
 export interface NodeConfig {
   id: string;
   clusterId?: string;
-  // [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface EdgeConfig {
@@ -22,7 +22,7 @@ export interface GraphData {
 export interface Cluster {
   id: string;
   nodes: NodeConfig[];
-  sumTot?: number;
+  count: number;
 }
 
 export interface ClusterData {

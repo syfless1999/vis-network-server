@@ -1,6 +1,7 @@
 
-import getAdjMatrix from './adjacent-matrix';
 import { uniqueId } from 'src/util/uniqueId';
+
+import getAdjMatrix from './adjacent-matrix';
 import { GraphData, ClusterData, Cluster, NodeConfig, EdgeConfig } from './types';
 
 /**
@@ -20,23 +21,16 @@ const labelPropagation = (
   // the origin data
   const { nodes = [], edges = [] } = graphData;
 
-  const clusters: {
-    [id: string]: Cluster
-  } = {};
-  const nodeMap: {
-    [id: string]: {
-      node: NodeConfig,
-      idx: number
-    }
-  } = {};
-
+  const clusters: { [id: string]: Cluster } = {};
+  const nodeMap: { [id: string]: { node: NodeConfig, idx: number } } = {};
   // init the clusters and nodeMap
   nodes.forEach((node, i) => {
     const cid: string = uniqueId();
     node.clusterId = cid;
     clusters[cid] = {
       id: cid,
-      nodes: [node]
+      nodes: [node],
+      count: 0,
     };
     nodeMap[node.id] = {
       node,
@@ -55,11 +49,7 @@ const labelPropagation = (
    *  ...
    * }
    */
-  const neighbors: {
-    [iid: string]: {
-      [jid: string]: number;
-    };
-  } = {};
+  const neighbors: { [iid: string]: { [jid: string]: number; }; } = {};
   adjMatrix.forEach((row, i) => {
     let k = 0;
     const iid = nodes[i].id;
@@ -78,11 +68,12 @@ const labelPropagation = (
   while (iter < maxIteration) {
     let changed = false;
     nodes.forEach(node => {
-      const neighborClusters: { [id: string]: number } = {};
+      const neighborClusters: { [clusterId: string]: number } = {};
       Object.keys(neighbors[node.id]).forEach(neighborId => {
         const neighborWeight = neighbors[node.id][neighborId];
         const neighborNode = nodeMap[neighborId].node;
         const neighborClusterId = neighborNode.clusterId;
+        if (!neighborClusterId) return;
         if (!neighborClusters[neighborClusterId]) neighborClusters[neighborClusterId] = 0;
         neighborClusters[neighborClusterId] += neighborWeight;
       });
@@ -98,7 +89,7 @@ const labelPropagation = (
         }
       });
       if (bestClusterIds.length === 1 && bestClusterIds[0] === node.clusterId) return;
-      const selfClusterIdx = bestClusterIds.indexOf(node.clusterId);
+      const selfClusterIdx = bestClusterIds.indexOf(node.clusterId!);
       if (selfClusterIdx >= 0) bestClusterIds.splice(selfClusterIdx, 1);
       if (bestClusterIds && bestClusterIds.length) {
         changed = true;
@@ -127,6 +118,7 @@ const labelPropagation = (
     }
   });
 
+  // ======= NEW: id customize =======
   if (customizeId) {
     // change cluster id
     const idMap: { [oldId: string]: string } = {};
@@ -139,35 +131,46 @@ const labelPropagation = (
       clusters[newId].id = newId;
       delete clusters[oldId];
     }
+
     // change node's clusterId
     nodes.forEach((node) => {
       const { clusterId } = node;
       if (clusterId) {
         node.clusterId = idMap[clusterId];
       }
-    });
+    })
   }
+
+  // ======= NEW: node count =======
+  Object.keys(clusters).forEach(clusterId => {
+    const cluster = clusters[clusterId];
+    cluster.nodes.forEach(n => {
+      const { count = 1 } = n;
+      if (typeof count !== 'number') throw new Error('Node can not have property named "count".')
+      cluster.count += count;
+    });
+  });
 
   // get the cluster edges
   const clusterEdges: EdgeConfig[] = [];
-  const clusterEdgeMap: {
-    [id: string]: EdgeConfig;
-  } = {};
+  const clusterEdgeMap: { [id: string]: EdgeConfig; } = {};
   edges.forEach(edge => {
     const { source, target } = edge;
     const weight = edge[weightPropertyName] || 1;
+    const count = edge.count || 1;
     const sourceClusterId = nodeMap[source].node.clusterId;
     const targetClusterId = nodeMap[target].node.clusterId;
+
     const newEdgeId = `${sourceClusterId}---${targetClusterId}`;
     if (clusterEdgeMap[newEdgeId]) {
       clusterEdgeMap[newEdgeId].weight += weight;
-      clusterEdgeMap[newEdgeId].count++;
+      clusterEdgeMap[newEdgeId].count += count;
     } else {
       const newEdge = {
-        source: sourceClusterId,
-        target: targetClusterId,
+        source: sourceClusterId!,
+        target: targetClusterId!,
         weight,
-        count: 1
+        count,
       };
       clusterEdgeMap[newEdgeId] = newEdge;
       clusterEdges.push(newEdge);
@@ -180,7 +183,7 @@ const labelPropagation = (
   });
   return {
     clusters: clustersArray,
-    clusterEdges
+    clusterEdges,
   }
 }
 
