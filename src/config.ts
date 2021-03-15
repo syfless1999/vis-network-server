@@ -7,8 +7,9 @@ const config = {
   neo4j_password: process.env.NEO4j_DATABASE_PASSWORD,
   mongodb_url: process.env.MONGODB_DATABASE_URL,
   need_update_datasource: Boolean(process.env.NEED_UPDATE_DATASOURCE),
-  datasource_fetch_length: Number(process.env.DATASOURCE_FETCH_LENGTH),
-  datasource_update_cron: process.env.DATASOURCE_UPDATE_CRON,
+  node_fetch_length: Number(process.env.NODE_FETCH_LENGTH),
+  edge_fetch_length: Number(process.env.EDGE_FETCH_LENGTH),
+  datasource_fetch_cron: process.env.DATASOURCE_FETCH_CRON,
   need_task_handle: Boolean(process.env.NEED_TASK_HANDLE),
   task_handle_cron: process.env.TASK_HANDLE_CRON,
 };

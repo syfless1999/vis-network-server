@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import Task, { TaskClusterType } from 'src/model/Task';
-import { retrieveDataSource } from 'src/service/datasource';
-import { retrieveTaskWithDataSourceList, handleTask } from 'src/service/task';
+import Task, { TaskClusterType, TaskDocument } from 'src/model/Task';
+import { isFetching, needFetchEdges, needFetchNodes, retrieveDataSource } from 'src/service/datasource';
+import { retrieveTaskWithDataSourceList, handleTask, updateTask } from 'src/service/task';
 // import HCluster from 'src/util/clusterMethod';
 
 export const retrieve = async (req: Request, res: Response, next: (error: Error) => any) => {
@@ -113,9 +113,15 @@ export const create = async (req: Request, res: Response, next: (error: Error) =
 
 export const handleTaskCron = async () => {
   const list = await retrieveTaskWithDataSourceList();
-  for (const task of list) {
-    if (task.progress !== 100) {
-      await handleTask(task);
+  await Promise.all(list.map(async (task: any) => {
+    const { progress, dataSource } = task;
+    const dsView = dataSource[0];
+    if (isFetching(dsView) || needFetchNodes(dsView) || needFetchEdges(dsView)) {
+      return;
     }
-  }
+    if (progress === 0) {
+      await updateTask(task, { progress: 50 });
+      return await handleTask(task);
+    }
+  }));
 };

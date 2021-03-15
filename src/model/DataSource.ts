@@ -26,6 +26,7 @@ export interface ExpandSource {
 export interface DataSourceDocument extends Document {
   name: string;
   url: string;
+  isFetching: boolean;
   node: NodeProperty;
   edge: EdgeProperty;
   scale?: DataScale;
@@ -36,8 +37,12 @@ export interface DataSourceDocument extends Document {
 const dataSourceSchema = new mongoose.Schema({
   name: String,
   url: String,
+  isFetching: Boolean,
   node: {
+    // 拉取是从第0条数据开始的
+    // 数据源一共有多少条数据
     total: Number,
+    // 分析数据库目前一共有多少条数据
     current: Number,
     param: [String],
   },

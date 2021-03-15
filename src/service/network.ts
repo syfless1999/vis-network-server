@@ -1,6 +1,6 @@
 import { runTransaction } from 'src/db/neo4jDriver';
 import { Node, HeadCluster, Edge, Layer, LayerNetwork } from "src/type/network";
-import { chunk, uniqueArray } from 'src/util/array';
+import { uniqueArray } from 'src/util/array';
 import { nodes2Map } from 'src/util/network';
 
 
@@ -23,14 +23,14 @@ export const saveEdges = async (
   name: string,
 ) => {
   await runTransaction(async (txc) => {
-    for (let i = 0; i < edges.length; i += 1) {
-      const edge = edges[i];
+    const edgeSaveTasks = edges.map((edge: Edge) => {
       const { type = 'edge', ...params } = edge;
-      await txc.run(
+      return txc.run(
         `Match (s1:${name} {id:'${params.source}'}),(s2:${name} {id:'${params.target}'}) Create (s1)-[r:${type} $params]->(s2)`, {
         params,
       });
-    }
+    });
+    await Promise.all(edgeSaveTasks);
   });
 };
 

@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { Socket } from 'socket.io';
 import { dsIO } from 'src/websocket';
 import DataSource from 'src/model/DataSource';
-import { retrieveDataSourceList, updateEdgeDataSource, updateNodeDataSource } from 'src/service/datasource';
+import { retrieveDataSourceList, fetchNodeDataSource, fetchEdgeDataSource, needFetchNodes, needFetchEdges, isFetching } from 'src/service/datasource';
 
 /**
  * <http>
@@ -13,6 +13,7 @@ export const create = async (req: Request, res: Response, next: (err: Error) => 
     const { body } = req;
     const newDataSource = new DataSource({
       name: body.name,
+      isFetching: false,
       url: body.url,
       node: {
         total: 0,
@@ -71,26 +72,19 @@ export const dataSourceSocketHandler = async (socket: Socket) => {
  *  1. when interval is not enough to update the whole DataSources' nodes and edges, how to solve it?
  *  2. what strategy is comfortable for update several ds of different scale?
  */
-export const updateDataSourceCron = async () => {
+export const fetchDataSourceCron = async () => {
   try {
     const list = await retrieveDataSourceList();
-    const nodeUpdateList = list.filter(ds =>
-      ds.node.total == 0 ||
-      ds.node.total > ds.node.current
-    );
-    const edgeUpdateList = list.filter(ds =>
-      ds.node.total != 0 &&
-      ds.node.total <= ds.node.current && (
-        ds.edge.total == 0 ||
-        ds.edge.total > ds.edge.current
-      )
-    );
-    const needUpdate = nodeUpdateList.length || edgeUpdateList.length;
-    if (needUpdate) {
-      const nodeUpdateTasks = nodeUpdateList.map((ds) => updateNodeDataSource(ds));
-      const edgeUpdateTasks = edgeUpdateList.map((ds) => updateEdgeDataSource(ds));
-      await Promise.all(nodeUpdateTasks);
-      await Promise.all(edgeUpdateTasks);
+   
+    const nodeFetchList = list.filter(ds => !isFetching(ds) && needFetchNodes(ds));
+    const edgeFetchList = list.filter(ds => !isFetching(ds) && needFetchEdges(ds));
+    
+    const needFetch = nodeFetchList.length || edgeFetchList.length;
+    if (needFetch) {
+      const nodeFetchTasks = nodeFetchList.map((ds) => fetchNodeDataSource(ds));
+      await Promise.all(nodeFetchTasks);
+      const edgeFetchTasks = edgeFetchList.map((ds) => fetchEdgeDataSource(ds));
+      await Promise.all(edgeFetchTasks);
       const newDataSourceList = await retrieveDataSourceList();
       dsIO.to('datasource_list_room').emit('list', {
         message: 'success',

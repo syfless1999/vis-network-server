@@ -43,6 +43,10 @@ export const updateTask = async (task: any, newProperties: object) => {
 export const handleTask = async (task: any) => {
   const { dataSource, _id } = task;
   const taskId = objectId2String(_id);
+
+  console.log(`Handle Task [${taskId}] Start`);
+  
+  
   const { name } = dataSource[0];
   // 1. get source network data
   const layer = await retrieveCompleteSourceNetwork(name);
@@ -67,11 +71,11 @@ export const handleTask = async (task: any) => {
   // 5. create edge from 
   const crossLayerEdges = retrieveCrossLayerEdges(layerNetwork);
 
-  const saveEdgesTask = saveEdges(crossLayerEdges, name);
+  await saveEdges(crossLayerEdges, name);
   // 6. update task info
-  const updateTaskInfo = updateTask(task, {
+  await updateTask(task, {
     progress: 100,
     largestLevel: layerNetwork.length - 1,
   });
-  await Promise.all([saveEdgesTask, updateTaskInfo]);
+  console.log(`Handle Task [${taskId}] Finished`);
 }
