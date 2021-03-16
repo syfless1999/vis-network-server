@@ -36,7 +36,7 @@ export const saveEdges = async (
 
 export const createIndex = async (label: string, index: string) => {
   await runTransaction(async (txc) => {
-    await txc.run(`CREATE INDEX ON :${label}(${index})`);
+    await txc.run(`CREATE INDEX FOR (n:${label}) ON (n.${index})`);
   });
 }
 
@@ -44,8 +44,6 @@ export const saveLayer = async (layer: Layer<Node | HeadCluster>, name: string) 
   await saveNodes(layer.nodes, name);
   await saveEdges(layer.edges, name);
 }
-
-
 
 export const retrieveCrossLayerEdges = (layers: LayerNetwork) => {
   let currentLevel = layers.length - 1;

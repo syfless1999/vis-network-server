@@ -1,10 +1,11 @@
 import request from 'superagent';
 import DataSource, { DataSourceDocument } from 'src/model/DataSource';
 import config from 'src/config';
-import { saveEdges, saveNodes } from 'src/service/Network';
+import { createIndex, saveEdges, saveNodes } from 'src/service/Network';
 import { Node } from 'src/type/network'
 import { objectId2String } from 'src/util/mongodb';
 import { cronDebug } from 'src/util/debug';
+import { measureTimeWrapper } from 'src/util/performance';
 
 export const retrieveDataSourceList = async () => {
   const list = await DataSource
@@ -61,6 +62,9 @@ const fetchNodes = async (dsView: DataSourceDocument) => {
       'node.current': realEnd + 1,
     }
   });
+  if (realEnd + 1 === nodeTotal) {
+    await createIndex(name, 'id');
+  }
   cronDebug(`Fetch Task [${objectId2String(_id)}]: node fetch ${node.current} -- ${realEnd}`);
 };
 const fetchEdges = async (dsView: DataSourceDocument) => {
@@ -90,7 +94,8 @@ const fetchDataSourceWrapper = (
       return;
     }
     await DataSource.findByIdAndUpdate(_id, { $set: { 'isFetching': true } });
-    await fetchFunc(dsView);
+    // await fetchFunc(dsView);
+    await measureTimeWrapper(fetchFunc,'fetch')(dsView);
     await DataSource.findByIdAndUpdate(_id, { $set: { 'isFetching': false } });
   };
 }
