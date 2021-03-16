@@ -3,6 +3,7 @@ import Task from 'src/model/Task';
 import { testClusterNetwork } from 'src/util/testCluster';
 import { retrieveCompleteSourceNetwork } from './network';
 import { objectId2String, string2ObjectId } from 'src/util/mongodb';
+import { cronDebug } from 'src/util/debug';
 
 export const retrieveTaskList = async () => {
   const list = await Task.find().exec();
@@ -42,12 +43,9 @@ export const updateTask = async (task: any, newProperties: object) => {
 
 export const handleTask = async (task: any) => {
   const { dataSource, _id } = task;
-  const taskId = objectId2String(_id);
-
-  console.log(`Handle Task [${taskId}] Start`);
-
-
+  const taskId = objectId2String(_id);  
   const { name } = dataSource[0];
+  cronDebug(`Handle Task [${name}:${taskId}] Start`);
   // 1. get source network data
   const layer = await retrieveCompleteSourceNetwork(name);
   // 2. n-cluster network
@@ -76,5 +74,4 @@ export const handleTask = async (task: any) => {
     progress: 100,
     largestLevel: layerNetwork.length - 1,
   });
-  console.log(`Handle Task [${taskId}] Finished`);
 }

@@ -1,4 +1,4 @@
-import { dataSourceSocketHandler } from './controller/datasource';
+import { dataSourceSocketHandler } from 'src/controller/datasource';
 
 const io = require('socket.io')(null, { cors: true });
 

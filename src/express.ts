@@ -1,26 +1,32 @@
 import express, { Router } from 'express';
 import cookieParser from 'cookie-parser';
-import morgan from 'morgan';
+
 import homeRouter from 'src/route/home';
 import dataSourceRouter from 'src/route/datasource';
 import taskRouter from 'src/route/task';
 import networkRouter from 'src/route/network';
+import { httpDebug } from 'src/util/debug';
+
 
 // handle promise, async/await error automatically
 require('express-async-errors');
 
 const app = express();
 
-app.use(morgan('dev'));
+
 app.use(express.json())
 app.use(express.urlencoded({extended: true}));
 app.use(cookieParser());
 
-// cors
 app.all('*', function (req, res, next) {
+  // cors
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With');
   res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
+
+  // debug
+  httpDebug(`${req.method} ${req.url}`);
+
   if (req.method == 'OPTIONS') {
     res.sendStatus(200);
   }

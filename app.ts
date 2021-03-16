@@ -1,10 +1,8 @@
-import _debug = require('debug');
 import http from 'http';
 import io from 'src/websocket';
-import app from './src/express';
-import cronJobs from './src/cron';
-
-const debug = _debug('vis-network:server');
+import app from 'src/express';
+import cronJobs from 'src/cron';
+import { httpDebug } from 'src/util/debug';
 
 const port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
@@ -82,5 +80,5 @@ function onListening() {
   const bind = typeof addr === 'string'
     ? `pipe ${addr}`
     : `port ${addr.port}`;
-  debug(`Listening on ${bind}`);
+  httpDebug(`listening on ${bind}`);
 }

@@ -4,6 +4,7 @@ import config from 'src/config';
 import { saveEdges, saveNodes } from 'src/service/Network';
 import { Node } from 'src/type/network'
 import { objectId2String } from 'src/util/mongodb';
+import { cronDebug } from 'src/util/debug';
 
 export const retrieveDataSourceList = async () => {
   const list = await DataSource
@@ -60,7 +61,7 @@ const fetchNodes = async (dsView: DataSourceDocument) => {
       'node.current': realEnd + 1,
     }
   });
-  console.log(`Fetch Task [${objectId2String(_id)}]: node fetch ${node.current} -- ${realEnd}`);
+  cronDebug(`Fetch Task [${objectId2String(_id)}]: node fetch ${node.current} -- ${realEnd}`);
 };
 const fetchEdges = async (dsView: DataSourceDocument) => {
   const { edge, name, _id } = dsView;
@@ -77,7 +78,7 @@ const fetchEdges = async (dsView: DataSourceDocument) => {
       'edge.current': realEnd + 1,
     }
   });
-  console.log(`Fetch Task [${objectId2String(_id)}]: edge fetch ${edge.current} -- ${realEnd}`);
+  cronDebug(`Fetch Task [${objectId2String(_id)}]: edge fetch ${edge.current} -- ${realEnd}`);
 }
 
 const fetchDataSourceWrapper = (

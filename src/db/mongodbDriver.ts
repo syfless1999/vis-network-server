@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import config from 'src/config';
+import { dsDebug } from 'src/util/debug';
 
 const { mongodb_url: url } = config;
 
@@ -10,15 +11,15 @@ mongoose.connect(url, {
 });
 
 mongoose.connection.on('connected', function () {
-  console.log(`Mongoose connection open to ${url}`);
+  dsDebug(`Mongoose connection open to ${url}`);
 });
 
 mongoose.connection.on('error', function (err) {
-  console.log('Mongoose connection error: ' + err);
+  dsDebug(`Mongoose connection error: ${err}`);
 });
 
 mongoose.connection.on('disconnected', function () {
-  console.log('Mongoose connection disconnected');
+  dsDebug('Mongoose connection disconnected');
 });
 
 
