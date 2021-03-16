@@ -15,7 +15,7 @@ const labelPropagation = (
   graphData: GraphData,
   directed: boolean = false,
   weightPropertyName: string = 'weight',
-  maxIteration: number = 1000,
+  maxIteration: number = 100,
   customizeId?: (oldId: string, index: number) => string,
 ): ClusterData => {
   // the origin data

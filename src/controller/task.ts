@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import Task, { TaskClusterType, TaskDocument } from 'src/model/Task';
+import Task, { TaskClusterType } from 'src/model/Task';
 import { isFetching, needFetchEdges, needFetchNodes, retrieveDataSource } from 'src/service/datasource';
 import { retrieveTaskWithDataSourceList, handleTask, updateTask } from 'src/service/task';
 // import HCluster from 'src/util/clusterMethod';
@@ -77,6 +77,11 @@ export const create = async (req: Request, res: Response, next: (error: Error) =
 
     if (!await checkReqBody(body)) {
       throw new Error('params not legal');
+    }
+
+    const dsView = await retrieveDataSource(dataSourceId);
+    if (isFetching(dsView) || needFetchEdges(dsView) || needFetchNodes(dsView)) {
+      throw new Error('datasource has not been fully fetched.')
     }
 
     const newTask = new Task({

@@ -39,6 +39,8 @@ export const saveLayer = async (layer: Layer<Node | HeadCluster>, name: string) 
   await saveEdges(layer.edges, name);
 }
 
+
+
 export const retrieveCrossLayerEdges = (layers: LayerNetwork) => {
   let currentLevel = layers.length - 1;
   const edges: Edge[] = [];
@@ -66,41 +68,54 @@ export const retrieveCrossLayerEdges = (layers: LayerNetwork) => {
   return edges;
 };
 
-export const retrieveCompleteSourceNetwork = async (label: string): Promise<Layer<Node>> => {
-  const result: Layer<Node> = {
-    nodes: [],
-    edges: [],
-  };
+export const retrieveNodes = async (
+  label: string,
+  level: number = 0,
+): Promise<(Node | HeadCluster)[]> => {
+  const nodesRes: (Node | HeadCluster)[] = [];
   await runTransaction(async (txc) => {
     // retrieve node
     const nodes = await txc.run(
       `Match (node:${label} {level:$level}) Return node`, {
-      level: 0,
+      level,
     });
     nodes.records.forEach(record => {
       const node = record.get('node');
-      result.nodes.push({
+      nodesRes.push({
         ...node.properties,
       });
     });
-    // retrieve edge
+  });
+  return nodesRes;
+};
+export const retrieveEdges = async (
+  label: string,
+  level: number = 0,
+): Promise<Edge[]> => {
+  const edgesRes: Edge[] = [];
+  await runTransaction(async (txc) => {
     const edges = await txc.run(
       `Match (n1:${label} {level:$level})-[edge]->(n2:${label} {level:$level}) Return Distinct edge`, {
-      level: 0,
+      level,
     });
     edges.records.forEach(record => {
       const edge = record.get('edge');
-      result.edges.push(edge.properties);
+      edgesRes.push(edge.properties);
     });
   });
-  return result;
+  return edgesRes;
+}
+
+export const retrieveCompleteSourceNetwork = async (label: string): Promise<Layer<Node>> => {
+  const nodes = await retrieveNodes(label) as Node[];
+  const edges = await retrieveEdges(label);
+  return {
+    nodes,
+    edges,
+  };
 }
 
 export const retrievePartSourceNetwork = async (label: string, limit: number = 30): Promise<Layer<Node>> => {
-  const result: Layer<Node> = {
-    nodes: [],
-    edges: [],
-  };
   const nodes: Node[] = [];
   const edges: Edge[] = [];
   await runTransaction(async (txc) => {

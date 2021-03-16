@@ -1,4 +1,4 @@
-import { retrieveCrossLayerEdges, saveEdges, saveLayer, updateNodes } from 'src/service/Network';
+import { retrieveCrossLayerEdges, saveEdges, saveLayer } from 'src/service/Network';
 import Task from 'src/model/Task';
 import { testClusterNetwork } from 'src/util/testCluster';
 import { retrieveCompleteSourceNetwork } from './network';
@@ -45,8 +45,8 @@ export const handleTask = async (task: any) => {
   const taskId = objectId2String(_id);
 
   console.log(`Handle Task [${taskId}] Start`);
-  
-  
+
+
   const { name } = dataSource[0];
   // 1. get source network data
   const layer = await retrieveCompleteSourceNetwork(name);
@@ -70,7 +70,6 @@ export const handleTask = async (task: any) => {
   }
   // 5. create edge from 
   const crossLayerEdges = retrieveCrossLayerEdges(layerNetwork);
-
   await saveEdges(crossLayerEdges, name);
   // 6. update task info
   await updateTask(task, {

@@ -88,13 +88,9 @@ const fetchDataSourceWrapper = (
     if (isFetching) {
       return;
     }
-    console.log('====================================');
-    console.time('fetch spend');
     await DataSource.findByIdAndUpdate(_id, { $set: { 'isFetching': true } });
     await fetchFunc(dsView);
     await DataSource.findByIdAndUpdate(_id, { $set: { 'isFetching': false } });
-    console.timeEnd('fetch spend');
-    console.log('====================================');
   };
 }
 export const fetchNodeDataSource = fetchDataSourceWrapper(fetchNodes);

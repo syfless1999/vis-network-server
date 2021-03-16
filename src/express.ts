@@ -1,7 +1,6 @@
 import express, { Router } from 'express';
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
-import bodyParser from 'body-parser';
 import homeRouter from 'src/route/home';
 import dataSourceRouter from 'src/route/datasource';
 import taskRouter from 'src/route/task';
@@ -13,8 +12,8 @@ require('express-async-errors');
 const app = express();
 
 app.use(morgan('dev'));
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+app.use(express.json())
+app.use(express.urlencoded({extended: true}));
 app.use(cookieParser());
 
 // cors
