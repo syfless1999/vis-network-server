@@ -3,7 +3,7 @@ import DataSource, { DataSourceDocument } from 'src/model/DataSource';
 import config from 'src/config';
 import { createIndex, saveEdges, saveNodes } from 'src/service/Network';
 import { Node } from 'src/type/network'
-import { objectId2String } from 'src/util/mongodb';
+import { objectId2String } from 'src/util/string';
 import { cronDebug } from 'src/util/debug';
 
 export const retrieveDataSourceList = async () => {

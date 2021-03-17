@@ -1,5 +1,5 @@
 
-import { uniqueId } from 'src/util/uniqueId';
+import { uniqueId } from 'src/util/string';
 
 import getAdjMatrix from './adjacent-matrix';
 import { GraphData, ClusterData, Cluster, NodeConfig, EdgeConfig } from './types';

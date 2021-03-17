@@ -2,7 +2,7 @@ import { findCrossLayerEdges, saveEdges, saveLayer } from 'src/service/Network';
 import Task from 'src/model/Task';
 import { testClusterNetwork } from 'src/util/testCluster';
 import { retrieveCompleteSourceNetwork } from './network';
-import { objectId2String, string2ObjectId } from 'src/util/mongodb';
+import { objectId2String, string2ObjectId } from 'src/util/string';
 import { cronDebug } from 'src/util/debug';
 
 export const retrieveTaskList = async () => {

@@ -2,6 +2,7 @@ import { runTransaction } from 'src/db/neo4jDriver';
 import { Node, HeadCluster, Edge, Layer, LayerNetwork } from "src/type/network";
 import { uniqueArray } from 'src/util/array';
 import { nodes2Map } from 'src/util/network';
+import { getJoinString } from 'src/util/string';
 
 export const saveNodes = async (
   nodes: (Node | HeadCluster)[],
@@ -40,14 +41,14 @@ export const saveLayer = async (
 }
 
 export const createIndex = async (label: string, index: string) => {
-  const indexName = `${label}_${index}`;
+  const indexName = getJoinString(label, index);
   await runTransaction(async (txc) => {
     await txc.run(`CREATE INDEX ${indexName} FOR (n:${label}) ON (n.${index})`);
   });
 }
 
 export const dropIndex = async (label: string, index: string) => {
-  const indexName = `${label}_${index}`;
+  const indexName = getJoinString(label, index);
   await runTransaction(async (txc) => {
     await txc.run(`DROP INDEX ${indexName}`);
   });
