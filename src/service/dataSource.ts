@@ -5,7 +5,6 @@ import { createIndex, saveEdges, saveNodes } from 'src/service/Network';
 import { Node } from 'src/type/network'
 import { objectId2String } from 'src/util/mongodb';
 import { cronDebug } from 'src/util/debug';
-import { measureTimeWrapper } from 'src/util/performance';
 
 export const retrieveDataSourceList = async () => {
   const list = await DataSource
@@ -94,8 +93,7 @@ const fetchDataSourceWrapper = (
       return;
     }
     await DataSource.findByIdAndUpdate(_id, { $set: { 'isFetching': true } });
-    // await fetchFunc(dsView);
-    await measureTimeWrapper(fetchFunc,'fetch')(dsView);
+    await fetchFunc(dsView);
     await DataSource.findByIdAndUpdate(_id, { $set: { 'isFetching': false } });
   };
 }

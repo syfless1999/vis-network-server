@@ -1,4 +1,4 @@
-import { retrieveCrossLayerEdges, saveEdges, saveLayer } from 'src/service/Network';
+import { findCrossLayerEdges, saveEdges, saveLayer } from 'src/service/Network';
 import Task from 'src/model/Task';
 import { testClusterNetwork } from 'src/util/testCluster';
 import { retrieveCompleteSourceNetwork } from './network';
@@ -43,7 +43,7 @@ export const updateTask = async (task: any, newProperties: object) => {
 
 export const handleTask = async (task: any) => {
   const { dataSource, _id } = task;
-  const taskId = objectId2String(_id);  
+  const taskId = objectId2String(_id);
   const { name } = dataSource[0];
   cronDebug(`Handle Task [${name}:${taskId}] Start`);
   // 1. get source network data
@@ -67,8 +67,9 @@ export const handleTask = async (task: any) => {
     await saveLayer(layer, name);
   }
   // 5. create edge from 
-  const crossLayerEdges = retrieveCrossLayerEdges(layerNetwork);
-  await saveEdges(crossLayerEdges, name);
+  const crossLayerEdges = findCrossLayerEdges(layerNetwork);
+  const includeEdgeLabel = `${name}_include`;
+  await saveEdges(crossLayerEdges, name, includeEdgeLabel);
   // 6. update task info
   await updateTask(task, {
     progress: 100,

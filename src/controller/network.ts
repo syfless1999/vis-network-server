@@ -3,7 +3,8 @@ import * as network from 'src/type/network';
 import networkData from 'src/mock/networkData.json';
 import { retrieveNetworkByTaskIdAndLevel, retrievePartSourceNetwork } from 'src/service/network';
 import { retrieveOneTask } from 'src/service/task';
-import { Layer, Node, HeadCluster } from 'src/type/network';
+import { Layer, Node } from 'src/type/network';
+import { measureTimeWrapper } from 'src/util/performance';
 
 /**
  * http [ temporary ]
@@ -32,10 +33,12 @@ export const retrieveLayer = async (req: Request, res: Response, next: (error: E
   try {
     const { params: { taskId }, query: { level: queryLevel } } = req;
     const task = await retrieveOneTask(taskId);
+    const { dataSource, progress } = task;
+    const { name } = dataSource[0];
     if (task == null) {
       throw new Error(`There is no task which's id is ${taskId}`);
     }
-    if (task.progress < 100) {
+    if (progress < 100) {
       throw new Error('This task has not been finished.');
     }
     const level = queryLevel == undefined || Number(queryLevel) < 0 ? task.largestLevel : Number(queryLevel);
@@ -43,7 +46,7 @@ export const retrieveLayer = async (req: Request, res: Response, next: (error: E
     if (level == 0) {
       layer = await retrievePartSourceNetwork(task.dataSource[0].name, 50);
     } else {
-      layer = await retrieveNetworkByTaskIdAndLevel(taskId, Number(level));
+      layer = await retrieveNetworkByTaskIdAndLevel(name, taskId, Number(level));
     }
     const layerNetwork = Array.from({ length: task.largestLevel + 1 });
     layerNetwork[level] = layer;
