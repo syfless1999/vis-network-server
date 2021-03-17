@@ -4,6 +4,7 @@ import { uniqueArray } from 'src/util/array';
 import { nodes2Map } from 'src/util/network';
 import { getJoinString } from 'src/util/string';
 
+// save
 export const saveNodes = async (
   nodes: (Node | HeadCluster)[],
   label: string,
@@ -40,32 +41,26 @@ export const saveLayer = async (
   await saveEdges(layer.edges, name);
 }
 
-export const createIndex = async (label: string, index: string) => {
-  const indexName = getJoinString(label, index);
-  await runTransaction(async (txc) => {
-    await txc.run(`CREATE INDEX ${indexName} FOR (n:${label}) ON (n.${index})`);
-  });
-}
-
-export const dropIndex = async (label: string, index: string) => {
-  const indexName = getJoinString(label, index);
-  await runTransaction(async (txc) => {
-    await txc.run(`DROP INDEX ${indexName}`);
-  });
-}
-
+// retrieve
 export const retrieveNodes = async (
   label: string,
   level: number = 0,
+  taskId?: string,
   limit?: number,
 ): Promise<(Node | HeadCluster)[]> => {
+  let query: string;
+  if (taskId != null) {
+    query = `MATCH ( node: ${label} { level: ${level}, taskId: '${taskId}' }) RETURN node `;
+  } else {
+    query = `MATCH ( node: ${label} { level: ${level} }) RETURN node `;
+  }
+  if (limit != null) {
+    query += `LIMIT ${limit} `;
+  }
   const nodesRes: (Node | HeadCluster)[] = [];
   await runTransaction(async (txc) => {
     // retrieve node
-    const nodes = await txc.run(
-      `MATCH (node:${label} {level:$level}) RETURN node`, {
-      level,
-    });
+    const nodes = await txc.run(query);
     nodes.records.forEach(record => {
       const node = record.get('node');
       nodesRes.push({
@@ -78,11 +73,22 @@ export const retrieveNodes = async (
 export const retrieveEdges = async (
   label: string,
   level: number = 0,
+  taskId?: string,
+  limit?: number,
 ): Promise<Edge[]> => {
+  let query: string;
+  if (taskId != null) {
+    query = `MATCH ( n1: ${label} { level: ${level}, taskId: '${taskId}' })-[edge]->( n2: ${label} { level: ${level}, taskId: '${taskId}'  }) RETURN DISTINCT edge `;
+  } else {
+    query = `MATCH ( n1: ${label} { level: ${level} })-[edge]->( n2: ${label} { level: ${level} }) RETURN DISTINCT edge `;
+  }
+  if (limit != null) {
+    query += `LIMIT ${limit}`;
+  }
   const edgesRes: Edge[] = [];
   await runTransaction(async (txc) => {
     const edges = await txc.run(
-      `MATCH (n1:${label} {level:$level})-[edge]->(n2:${label} {level:$level}) RETURN DISTINCT edge`, {
+      query, {
       level,
     });
     edges.records.forEach(record => {
@@ -92,25 +98,37 @@ export const retrieveEdges = async (
   });
   return edgesRes;
 }
-
-export const retrieveCompleteSourceNetwork = async (label: string): Promise<Layer<Node>> => {
-  const nodes = await retrieveNodes(label) as Node[];
-  const edges = await retrieveEdges(label);
+export const retrieveCompleteLayer = async (
+  label: string,
+  level?: number,
+  taskId?: string,
+): Promise<Layer<Node | HeadCluster>> => {
+  const nodes = await retrieveNodes(label, level, taskId);
+  const edges = await retrieveEdges(label, level, taskId);
   return {
     nodes,
     edges,
   };
 }
-
-export const retrievePartSourceNetwork = async (label: string, limit: number = 100): Promise<Layer<Node>> => {
+export const retrievePartNetwork = async (
+  label: string,
+  level?: number,
+  taskId?: string,
+  limit: number = 100,
+): Promise<Layer<Node>> => {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
   await runTransaction(async (txc) => {
+    let query: string;
+    if (level != null && taskId != null) {
+      query =
+        `MATCH ( node1: ${label} { level: ${level}, taskId: '${taskId}' })-[edge]->( node2: ${label} { level: ${level}, taskId: '${taskId}' }) ` +
+        `RETURN node1, node2, edge LIMIT ${limit} `;
+    } else {
+      query = `MATCH (node1:${label} {level:0})-[edge]->(node2:${label} {level:0}) RETURN node1, node2, edge LIMIT ${limit}`;
+    }
     // retrieve nodes and edges at one query
-    const queryRes = await txc.run(
-      `MATCH (node1:${label} {level:$level})-[edge]->(node2:${label} {level:$level}) RETURN node1, node2, edge LIMIT ${limit}`, {
-      level: 0,
-    });
+    const queryRes = await txc.run(query);
     queryRes.records.forEach(record => {
       const node1 = record.get('node1');
       const node2 = record.get('node2');
@@ -138,31 +156,13 @@ export const retrievePartSourceNetwork = async (label: string, limit: number = 1
   };
 }
 
-export const retrieveNetworkByTaskIdAndLevel = async (label: string, taskId: string, level: number): Promise<Layer<Node>> => {
-  const result: Layer<Node> = {
-    nodes: [],
-    edges: [],
-  };
+// index
+export const createIndex = async (label: string, index: string) => {
+  const indexName = getJoinString(label, index);
   await runTransaction(async (txc) => {
-    // retrieve node
-    const nodes = await txc.run(`MATCH (node:${label} {level:${level}, taskId:'${taskId}'}) RETURN node`);
-    nodes.records.forEach(record => {
-      const node = record.get('node');
-      result.nodes.push({
-        ...node.properties,
-      });
-    });
-    // retrieve edge
-    const edges = await txc.run(
-      `MATCH (n1:${label} {level:${level}, taskId:'${taskId}'})-[edge]->(n2:${label} {level:${level}, taskId:'${taskId}'}) RETURN DISTINCT edge`
-    );
-    edges.records.forEach(record => {
-      const edge = record.get('edge');
-      result.edges.push(edge.properties);
-    });
+    await txc.run(`CREATE INDEX ${indexName} FOR (n:${label}) ON (n.${index})`);
   });
-  return result;
-};
+}
 
 export const findCrossLayerEdges = (layers: LayerNetwork) => {
   let currentLevel = layers.length - 1;

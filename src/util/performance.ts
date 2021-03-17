@@ -16,7 +16,6 @@ export const measureTimeWrapper = <T extends unknown[], U>(
   }
 }
 
-
 /**
  * it's better to test memory at last
  * @param f function need to measure
