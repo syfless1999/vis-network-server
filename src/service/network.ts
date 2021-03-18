@@ -120,12 +120,12 @@ export const retrievePartNetwork = async (
   const edges: Edge[] = [];
   await runTransaction(async (txc) => {
     let query: string;
-    if (level != null && taskId != null) {
+    if (level && taskId != null) {
       query =
-        `MATCH ( node1: ${label} { level: ${level}, taskId: '${taskId}' })-[edge]->( node2: ${label} { level: ${level}, taskId: '${taskId}' }) ` +
+        `MATCH ( node1: ${label} { level: ${level}, taskId: '${taskId}' })-[edge:${label}]->( node2: ${label} { level: ${level}, taskId: '${taskId}' }) ` +
         `RETURN node1, node2, edge LIMIT ${limit} `;
     } else {
-      query = `MATCH (node1:${label} {level:0})-[edge]->(node2:${label} {level:0}) RETURN node1, node2, edge LIMIT ${limit}`;
+      query = `MATCH (node1:${label} {level:0})-[edge:${label}]->(node2:${label} {level:0}) RETURN node1, node2, edge LIMIT ${limit}`;
     }
     // retrieve nodes and edges at one query
     const queryRes = await txc.run(query);
@@ -150,6 +150,7 @@ export const retrievePartNetwork = async (
       }
     });
   });
+  console.log(`retrieve part network ${nodes.length}`)
   return {
     nodes: uniqueArray(nodes, (n) => n.id),
     edges,
