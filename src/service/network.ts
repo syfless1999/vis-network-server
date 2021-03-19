@@ -150,7 +150,6 @@ export const retrievePartNetwork = async (
       }
     });
   });
-  console.log(`retrieve part network ${nodes.length}`)
   return {
     nodes: uniqueArray(nodes, (n) => n.id),
     edges,
