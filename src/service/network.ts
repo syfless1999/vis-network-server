@@ -1,12 +1,12 @@
 import { runTransaction } from 'src/db/neo4jDriver';
-import { Node, HeadCluster, Edge, Layer, LayerNetwork } from "src/type/network";
+import { Node, Edge, Layer, LayerNetwork } from "src/type/network";
 import { uniqueArray } from 'src/util/array';
 import { nodes2Map } from 'src/util/network';
 import { getJoinString } from 'src/util/string';
 
 // save
 export const saveNodes = async (
-  nodes: (Node | HeadCluster)[],
+  nodes: Node[],
   label: string,
 ) => {
   await runTransaction(async (txc) => {
@@ -34,7 +34,7 @@ export const saveEdges = async (
   });
 };
 export const saveLayer = async (
-  layer: Layer<Node | HeadCluster>,
+  layer: Layer,
   name: string,
 ) => {
   await saveNodes(layer.nodes, name);
@@ -47,7 +47,7 @@ export const retrieveNodes = async (
   level: number = 0,
   taskId?: string,
   limit?: number,
-): Promise<(Node | HeadCluster)[]> => {
+): Promise<Node[]> => {
   let query: string;
   if (taskId != null) {
     query = `MATCH ( node: ${label} { level: ${level}, taskId: '${taskId}' }) RETURN node `;
@@ -57,7 +57,7 @@ export const retrieveNodes = async (
   if (limit != null) {
     query += `LIMIT ${limit} `;
   }
-  const nodesRes: (Node | HeadCluster)[] = [];
+  const nodesRes: Node[] = [];
   await runTransaction(async (txc) => {
     // retrieve node
     const nodes = await txc.run(query);
@@ -102,7 +102,7 @@ export const retrieveCompleteLayer = async (
   label: string,
   level?: number,
   taskId?: string,
-): Promise<Layer<Node | HeadCluster>> => {
+): Promise<Layer> => {
   const nodes = await retrieveNodes(label, level, taskId);
   const edges = await retrieveEdges(label, level, taskId);
   return {
@@ -115,7 +115,7 @@ export const retrievePartNetwork = async (
   level?: number,
   taskId?: string,
   limit: number = 100,
-): Promise<Layer<Node>> => {
+): Promise<Layer> => {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
   await runTransaction(async (txc) => {

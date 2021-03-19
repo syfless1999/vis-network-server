@@ -3,7 +3,7 @@ import * as network from 'src/type/network';
 import networkData from 'src/mock/networkData.json';
 import { retrievePartNetwork } from 'src/service/network';
 import { retrieveOneTask } from 'src/service/task';
-import { Layer, Node } from 'src/type/network';
+import { Layer } from 'src/type/network';
 
 /**
  * http [ temporary ]
@@ -41,7 +41,7 @@ export const retrieveLayer = async (req: Request, res: Response, next: (error: E
       throw new Error('This task has not been finished.');
     }
     const level = queryLevel == undefined || Number(queryLevel) < 0 ? task.largestLevel : Number(queryLevel);
-    let layer: Layer<Node | network.HeadCluster>;
+    let layer: Layer;
     layer = await retrievePartNetwork(name, level, taskId);
     const layerNetwork: network.LayerNetwork = Array.from({ length: task.largestLevel + 1 });
     layerNetwork[level] = layer;

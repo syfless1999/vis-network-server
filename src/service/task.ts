@@ -3,7 +3,6 @@ import Task from 'src/model/Task';
 import { testClusterNetwork } from 'src/util/testCluster';
 import { getJoinString, objectId2String, string2ObjectId } from 'src/util/string';
 import { cronDebug } from 'src/util/debug';
-import { Layer, Node } from 'src/type/network';
 
 export const retrieveTaskList = async () => {
   const list = await Task.find().exec();
@@ -47,7 +46,7 @@ export const handleTask = async (task: any) => {
   const { name } = dataSource[0];
   cronDebug(`Handle Task [${name}:${taskId}] Start`);
   // 1. get source network data
-  const layer = await retrieveCompleteLayer(name) as Layer<Node>;
+  const layer = await retrieveCompleteLayer(name);
   // 2. n-cluster network
   const layerNetwork = testClusterNetwork(layer, 3);
   // 3. data process(add taskId for cluster)

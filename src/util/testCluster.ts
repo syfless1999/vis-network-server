@@ -1,4 +1,4 @@
-import { Node, HeadCluster, Layer, LayerNetwork } from "src/type/network";
+import { Layer, LayerNetwork } from "src/type/network";
 import labelPropagation from 'src/algorithm/label-propagation';
 
 /**
@@ -7,11 +7,11 @@ import labelPropagation from 'src/algorithm/label-propagation';
  * @param depth target cluster depth, >= 1
  */
 export const testClusterNetwork = (
-  layer: Layer<Node>,
+  layer: Layer,
   depth: number,
 ): LayerNetwork => {
   const layerNetwork = [];
-  let currentDepth = 1, currentLayer: Layer<Node | HeadCluster> = layer;
+  let currentDepth = 1, currentLayer: Layer = layer;
   do {
     layerNetwork.push(currentLayer);
     currentLayer = testClusterLayer(currentLayer, currentDepth);
@@ -19,7 +19,7 @@ export const testClusterNetwork = (
   return layerNetwork;
 }
 
-export const testClusterLayer = (layer: Layer<Node | HeadCluster>, depth: number = 1): Layer<HeadCluster> => {
+export const testClusterLayer = (layer: Layer, depth: number = 1): Layer => {
   const targetLevel = layer.nodes.length ? layer.nodes[0].level + 1 : 0;
   const lpaResult = labelPropagation(
     layer,
@@ -28,7 +28,7 @@ export const testClusterLayer = (layer: Layer<Node | HeadCluster>, depth: number
     undefined,
     (_, i) => `${depth}_${i}`,
   );
-  const clusterResult: Layer<HeadCluster> = {
+  const clusterResult: Layer = {
     nodes: [],
     edges: [],
   };

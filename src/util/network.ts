@@ -1,15 +1,14 @@
-import { Node, HeadCluster, Cluster, Edge, ClusterEdge, Community, NodeMap } from "src/type/network";
+import { Node, Cluster, Edge, ClusterEdge, NodeMap } from "src/type/network";
 
-export const isNode = (c: Community): c is Node => 'clusterId' in c && !('nodes' in c);
-export const isHeadCluster = (c: Community): c is HeadCluster => 'nodes' in c;
-export const isCluster = (c: Community): c is Cluster => 'clusterId' in c && 'nodes' in c;
-export const isHead = (c: Community): c is HeadCluster => isHeadCluster(c) && !('clusterId' in c);
+export const isNode = (c: unknown): c is Node => typeof c === 'object' && c != null && 'id' in c;
+export const isCluster = (c: unknown): c is Cluster => isNode(c) && 'nodes' in c;
+export const isHeadCluster = (c: unknown) => isCluster(c) && !('clusterId' in c);
 export const isClusterEdge = (e: Edge): e is ClusterEdge => 'count' in e;
 
-type RNetworkArray = (Node | HeadCluster)[] | RNetworkArray[];
+type RNetworkArray = Node[] | RNetworkArray[];
 export const nodes2Map = (cs: RNetworkArray, map?: NodeMap) => {
-  const cmap = map || new Map<string, Node | HeadCluster>();
-  cs.forEach((c: (Node | HeadCluster | RNetworkArray)) => {
+  const cmap = map || new Map<string, Node>();
+  cs.forEach((c: (Node | RNetworkArray)) => {
     if (Array.isArray(c)) {
       nodes2Map(c, cmap);
     } else {
