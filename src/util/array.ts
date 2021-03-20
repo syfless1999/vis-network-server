@@ -20,3 +20,16 @@ export const chunk = <T>(
   }
   return rsArr;
 }
+
+export const array2Map = <T, U>(
+  arr: U[],
+  keyFunc: (v: U, i: number) => T,
+  map?: Map<T, U>,
+): Map<T, U> => {
+  const newMap = map || new Map<T, U>();
+  arr.forEach((v, i) => {
+    const key = keyFunc(v, i);
+    newMap.set(key, v);
+  });
+  return newMap;
+};

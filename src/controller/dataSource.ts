@@ -1,14 +1,14 @@
-import { Request, Response } from 'express';
 import { Socket } from 'socket.io';
 import { dsIO } from 'src/websocket';
 import DataSource from 'src/model/DataSource';
 import { retrieveDataSourceList, fetchNodeDataSource, fetchEdgeDataSource, needFetchNodes, needFetchEdges, isFetching } from 'src/service/datasource';
+import { Controller } from 'src/type/express';
 
 /**
  * <http>
  * create one datasource
  */
-export const create = async (req: Request, res: Response, next: (err: Error) => void) => {
+export const create: Controller = async (req, res, next) => {
   try {
     const { body } = req;
     const newDataSource = new DataSource({
@@ -40,7 +40,7 @@ export const create = async (req: Request, res: Response, next: (err: Error) => 
  * <http>
  * retrieve list of datasource
  */
-export const retrieve = async (req: Request, res: Response, next: (err: Error) => void) => {
+export const retrieve: Controller = async (req, res, next) => {
   try {
     let dataSourceList = await retrieveDataSourceList();
     res.json({
@@ -75,10 +75,10 @@ export const dataSourceSocketHandler = async (socket: Socket) => {
 export const fetchDataSourceCron = async () => {
   try {
     const list = await retrieveDataSourceList();
-   
+
     const nodeFetchList = list.filter(ds => !isFetching(ds) && needFetchNodes(ds));
     const edgeFetchList = list.filter(ds => !isFetching(ds) && needFetchEdges(ds));
-    
+
     const needFetch = nodeFetchList.length || edgeFetchList.length;
     if (needFetch) {
       const nodeFetchTasks = nodeFetchList.map((ds) => fetchNodeDataSource(ds));

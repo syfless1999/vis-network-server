@@ -5,7 +5,6 @@ const router = Router();
 
 router.get('/', networkController.retrieve);
 router.get('/:taskId', networkController.retrieveLayer);
-router.post('/expand', networkController.expandNode);
-router.post('/shrink', networkController.shrinkNode);
+router.post('/complete', networkController.completeLayer);
 
 export default router;

@@ -1,8 +1,7 @@
 import { runTransaction } from 'src/db/neo4jDriver';
-import { Node, Edge, Layer, LayerNetwork } from "src/type/network";
-import { uniqueArray } from 'src/util/array';
-import { nodes2Map } from 'src/util/network';
-import { getJoinString } from 'src/util/string';
+import { Node, Edge, Network, LayerNetwork, CrossLayerEdge } from "src/type/network";
+import { array2Map, uniqueArray } from 'src/util/array';
+import { getJoinString, props2CypherParam } from 'src/util/string';
 
 // save
 export const saveNodes = async (
@@ -34,7 +33,7 @@ export const saveEdges = async (
   });
 };
 export const saveLayer = async (
-  layer: Layer,
+  layer: Network,
   name: string,
 ) => {
   await saveNodes(layer.nodes, name);
@@ -42,25 +41,43 @@ export const saveLayer = async (
 }
 
 // retrieve
-export const retrieveNodes = async (
+export const retrieveNodesById = async (
   label: string,
-  level: number = 0,
-  taskId?: string,
+  taskId: string,
+  ids: string[],
   limit?: number,
 ): Promise<Node[]> => {
-  let query: string;
-  if (taskId != null) {
-    query = `MATCH ( node: ${label} { level: ${level}, taskId: '${taskId}' }) RETURN node `;
-  } else {
-    query = `MATCH ( node: ${label} { level: ${level} }) RETURN node `;
-  }
+  let query = `UNWIND $ids as id ` +
+    `MATCH (node:${label}) ` +
+    `WHERE (node.id=id AND node.taskId=$taskId) OR (node.id=id AND node.level=0) ` +
+    `RETURN node `;
+  const nodesRes: Node[] = [];
+  await runTransaction(async (txc) => {
+    // retrieve node
+    const res = await txc.run(query, { ids, taskId });
+    res.records.forEach(record => {
+      const node = record.get('node');
+      nodesRes.push({
+        ...node.properties,
+      });
+    });
+  });
+  return nodesRes;
+};
+export const retrieveNodesByProps = async (
+  label: string,
+  props?: object,
+  limit?: number,
+): Promise<Node[]> => {
+  const propsString = props2CypherParam(props);
+  let query = `MATCH (node:${label} ${propsString}) RETURN node `;
   if (limit != null) {
-    query += `LIMIT ${limit} `;
+    query += `LIMIT ${limit}`;
   }
   const nodesRes: Node[] = [];
   await runTransaction(async (txc) => {
     // retrieve node
-    const nodes = await txc.run(query);
+    const nodes = await txc.run(query, props);
     nodes.records.forEach(record => {
       const node = record.get('node');
       nodesRes.push({
@@ -70,27 +87,19 @@ export const retrieveNodes = async (
   });
   return nodesRes;
 };
-export const retrieveEdges = async (
+export const retrieveEdgesByProps = async (
   label: string,
-  level: number = 0,
-  taskId?: string,
+  props?: object,
   limit?: number,
 ): Promise<Edge[]> => {
-  let query: string;
-  if (taskId != null) {
-    query = `MATCH ( n1: ${label} { level: ${level}, taskId: '${taskId}' })-[edge]->( n2: ${label} { level: ${level}, taskId: '${taskId}'  }) RETURN DISTINCT edge `;
-  } else {
-    query = `MATCH ( n1: ${label} { level: ${level} })-[edge]->( n2: ${label} { level: ${level} }) RETURN DISTINCT edge `;
-  }
+  const propsString = props2CypherParam(props);
+  let query = `MATCH ( n1: ${label} ${propsString})-[edge]->( n2: ${label} ${propsString}) RETURN DISTINCT edge `;
   if (limit != null) {
     query += `LIMIT ${limit}`;
   }
   const edgesRes: Edge[] = [];
   await runTransaction(async (txc) => {
-    const edges = await txc.run(
-      query, {
-      level,
-    });
+    const edges = await txc.run(query, props);
     edges.records.forEach(record => {
       const edge = record.get('edge');
       edgesRes.push(edge.properties);
@@ -100,11 +109,11 @@ export const retrieveEdges = async (
 }
 export const retrieveCompleteLayer = async (
   label: string,
-  level?: number,
-  taskId?: string,
-): Promise<Layer> => {
-  const nodes = await retrieveNodes(label, level, taskId);
-  const edges = await retrieveEdges(label, level, taskId);
+  props?: object,
+): Promise<Network> => {
+  // 
+  const nodes = await retrieveNodesByProps(label, props, 100);
+  const edges = await retrieveEdgesByProps(label, props, 100);
   return {
     nodes,
     edges,
@@ -115,7 +124,7 @@ export const retrievePartNetwork = async (
   level?: number,
   taskId?: string,
   limit: number = 100,
-): Promise<Layer> => {
+): Promise<Network> => {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
   await runTransaction(async (txc) => {
@@ -156,6 +165,45 @@ export const retrievePartNetwork = async (
   };
 }
 
+export const retrieveNodesDirectlyConnectedNodes = async () => {
+  // TODO
+};
+
+export const retrieveNodesDirectlyConnectedNeighbourClusters = async (
+  label: string,
+  taskId: string,
+  ids: string[],
+): Promise<Map<string, CrossLayerEdge[]>> => {
+  const map = new Map<string, CrossLayerEdge[]>();
+  await runTransaction(async (txc) => {
+    const query = `UNWIND $ids as id ` +
+      `MATCH (n1:${label})-[e:${label}]-(n2:${label}) ` +
+      `WHERE n1.id=id ` +
+      `WITH n1, n2, e ` +
+      `MATCH r=(n2)<-[:${label}_include *1..]-(c:${label}) ` +
+      `WHERE c.taskId=$taskId ` +
+      `RETURN DISTINCT n1.id as nid, e.source as source, e.target as target, c.id as cid `;
+    const res = await txc.run(query, { ids, taskId });
+    res.records.forEach((record) => {
+      const nid = record.get('nid');
+      const cid = record.get('cid');
+      const source = record.get('source');
+      const target = record.get('target');
+      const clEdge: CrossLayerEdge = {
+        nid,
+        cid,
+        source,
+        target,
+      };
+      if (!map.has(nid)) {
+        map.set(nid, []);
+      }
+      const clEdges = map.get(nid);
+      clEdges.push(clEdge);
+    });
+  });
+  return map;
+};
 // index
 export const createIndex = async (label: string, index: string) => {
   const indexName = getJoinString(label, index);
@@ -170,7 +218,7 @@ export const findCrossLayerEdges = (layers: LayerNetwork) => {
   while (currentLevel > 0) {
     const currentLayer = layers[currentLevel];
     const lowLayer = layers[currentLevel - 1];
-    const lowLayerMap = nodes2Map(lowLayer.nodes);
+    const lowLayerMap = array2Map(lowLayer.nodes, (n) => n.id);
     currentLayer.nodes.forEach((node) => {
       const { id, nodes } = node;
       if (Array.isArray(nodes)) {

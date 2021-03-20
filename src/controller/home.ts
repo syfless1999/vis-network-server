@@ -1,6 +1,6 @@
-import { Request, Response } from 'express';
+import { Controller } from 'src/type/express';
 
 
-export const index = (req: Request, res: Response, next: () => any) => {
+export const index: Controller = (req, res, next) => {
   res.send('<h1>welcome vis-network</h1>');
 }

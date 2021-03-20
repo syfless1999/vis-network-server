@@ -14,23 +14,30 @@ export interface Cluster extends Node {
   features?: string[];
   taskId?: string;
 }
-export interface Edge {
+export interface EdgeBase {
   source: string;
   target: string;
+}
+export interface Edge extends EdgeBase {
   [key: string]: unknown;
 }
+export interface CrossLayerEdge extends Edge {
+  nid: string;
+  cid: string;
+}
+
 export interface ClusterEdge extends Edge {
   count: number;
 }
-export type Layer = {
+export type Network = {
   nodes: Node[];
   edges: Edge[];
 }
-export type LayerNetwork = (Layer | undefined)[];
+export type IdNetwork = {
+  nodes: string[];
+  edges: EdgeBase[];
+}
+export type LayerNetwork = (Network | undefined)[];
 
-export interface DisplayNetwork {
-  nodes: Node[];
-  edges: Edge[];
-}
 export type NodeMap = Map<string, Node>;
 export type EdgeMap = Map<string, Edge>;
