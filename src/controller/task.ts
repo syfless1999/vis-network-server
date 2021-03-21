@@ -1,7 +1,7 @@
 import Task, { TaskClusterType } from 'src/model/Task';
 import { isFetching, needFetchEdges, needFetchNodes, retrieveDataSource } from 'src/service/datasource';
 import { retrieveTaskWithDataSourceList, updateTask } from 'src/service/task';
-import { findCrossLayerEdges, retrieveCompleteLayer, saveEdges, saveLayer } from 'src/service/Network';
+import { findCrossLevelEdges, retrieveCompleteLayer, saveEdges, saveLayer } from 'src/service/Network';
 import { testClusterNetwork } from 'src/util/testCluster';
 import { getJoinString, objectId2String } from 'src/util/string';
 import { cronDebug } from 'src/util/debug';
@@ -127,7 +127,7 @@ const handleTask = async (task: any) => {
   // 1. get source network data
   const layer = await retrieveCompleteLayer(name);
   // 2. n-cluster network
-  const layerNetwork = testClusterNetwork(layer, 3);
+  const layerNetwork = testClusterNetwork(layer);
   // 3. data process(add taskId for cluster)
   const completeLayerNetwork = [];
   for (let index = 1; index < layerNetwork.length; index++) {
@@ -145,9 +145,9 @@ const handleTask = async (task: any) => {
     await saveLayer(layer, name);
   }
   // 5. create edge from 
-  const crossLayerEdges = findCrossLayerEdges(layerNetwork);
+  const crossLevelEdges = findCrossLevelEdges(layerNetwork);
   const includeEdgeLabel = getJoinString(name, 'include');
-  await saveEdges(crossLayerEdges, name, includeEdgeLabel);
+  await saveEdges(crossLevelEdges, name, includeEdgeLabel);
   // 6. update task info
   await updateTask(task, {
     progress: 100,

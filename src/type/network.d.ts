@@ -21,7 +21,7 @@ export interface EdgeBase {
 export interface Edge extends EdgeBase {
   [key: string]: unknown;
 }
-export interface CrossLayerEdge extends Edge {
+export interface CrossLevelEdge extends Edge {
   nid: string;
   cid: string;
 }

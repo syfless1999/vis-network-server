@@ -8,14 +8,14 @@ import labelPropagation from 'src/algorithm/label-propagation';
  */
 export const testClusterNetwork = (
   layer: Network,
-  depth: number,
+  depth: number = 10,
 ): LayerNetwork => {
-  const layerNetwork = [];
-  let currentDepth = 1, currentLayer: Network = layer;
-  do {
-    layerNetwork.push(currentLayer);
+  let currentDepth = 0, currentLayer: Network = layer;
+  const layerNetwork = [layer];
+  while (currentLayer.nodes.length > 10 && currentDepth++ < depth) {
     currentLayer = testClusterLayer(currentLayer, currentDepth);
-  } while (currentDepth++ < depth);
+    layerNetwork.push(currentLayer);
+  }
   return layerNetwork;
 }
 

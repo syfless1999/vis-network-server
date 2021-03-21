@@ -1,5 +1,5 @@
 import { runTransaction } from 'src/db/neo4jDriver';
-import { Node, Edge, Network, LayerNetwork, CrossLayerEdge } from "src/type/network";
+import { Node, Edge, Network, LayerNetwork, CrossLevelEdge } from "src/type/network";
 import { array2Map, uniqueArray } from 'src/util/array';
 import { getJoinString, props2CypherParam } from 'src/util/string';
 
@@ -165,16 +165,39 @@ export const retrievePartNetwork = async (
   };
 }
 
-export const retrieveNodesDirectlyConnectedNodes = async () => {
-  // TODO
+export const retrieveDirectlyConnectedEdgeMap = async (
+  ids: string[],
+  label: string,
+  taskId?: string,
+): Promise<Map<string, Edge[]>> => {
+  const map = new Map<string, Edge[]>();
+  await runTransaction(async (txc) => {
+    const query = `UNWIND $ids as id ` +
+      `MATCH (n1:${label})-[e:${label}]-(:${label}) ` +
+      `WHERE n1.id=id AND (n1.level=0 OR n1.taskId=$taskId ) ` +
+      `RETURN id, e.source as source, e.target as target`;
+    const res = await txc.run(query, { ids, taskId });
+    res.records.forEach((record) => {
+      const id = record.get('id');
+      const source = record.get('source');
+      const target = record.get('target');
+      const e = { source, target };
+      if (!map.has(id)) {
+        map.set(id, []);
+      }
+      const es = map.get(id);
+      es.push(e);
+    });
+  })
+  return map;
 };
 
-export const retrieveNodesDirectlyConnectedNeighbourClusters = async (
+export const retrieveDirectlyConnectedNeighbourClusterEdgeMap = async (
+  ids: string[],
   label: string,
   taskId: string,
-  ids: string[],
-): Promise<Map<string, CrossLayerEdge[]>> => {
-  const map = new Map<string, CrossLayerEdge[]>();
+): Promise<Map<string, CrossLevelEdge[]>> => {
+  const map = new Map<string, CrossLevelEdge[]>();
   await runTransaction(async (txc) => {
     const query = `UNWIND $ids as id ` +
       `MATCH (n1:${label})-[e:${label}]-(n2:${label}) ` +
@@ -189,7 +212,7 @@ export const retrieveNodesDirectlyConnectedNeighbourClusters = async (
       const cid = record.get('cid');
       const source = record.get('source');
       const target = record.get('target');
-      const clEdge: CrossLayerEdge = {
+      const clEdge: CrossLevelEdge = {
         nid,
         cid,
         source,
@@ -212,7 +235,7 @@ export const createIndex = async (label: string, index: string) => {
   });
 }
 
-export const findCrossLayerEdges = (layers: LayerNetwork) => {
+export const findCrossLevelEdges = (layers: LayerNetwork) => {
   let currentLevel = layers.length - 1;
   const edges: Edge[] = [];
   while (currentLevel > 0) {

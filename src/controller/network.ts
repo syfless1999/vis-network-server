@@ -1,6 +1,6 @@
 import * as network from 'src/type/network';
 import networkData from 'src/mock/networkData.json';
-import { retrieveNodesDirectlyConnectedNeighbourClusters, retrieveNodesById, retrievePartNetwork } from 'src/service/network';
+import { retrieveDirectlyConnectedNeighbourClusterEdgeMap, retrieveDirectlyConnectedEdgeMap, retrieveNodesById, retrievePartNetwork } from 'src/service/network';
 import { retrieveOneTask } from 'src/service/task';
 import { Network } from 'src/type/network';
 import { Controller } from 'src/type/express';
@@ -65,6 +65,7 @@ export const completeLayer: Controller = async (req, res, next) => {
     const idNetwork: network.IdNetwork = body.idNetwork;
     const { nodes, edges } = idNetwork;
 
+    // 1 nodes need to append on the network
     const newNodes = await retrieveNodesById(label, taskId, ids);
     const allNodeIds = [
       ...nodes,
@@ -74,12 +75,25 @@ export const completeLayer: Controller = async (req, res, next) => {
     const nodeMap = array2Map(allNodeIds, (id) => id);
     const edgeMap = array2Map(edges, (e) => getJoinString(e.source, e.target));
 
-    // 1. same level edge
-
-    // 2. cross level edge
-    const map = await retrieveNodesDirectlyConnectedNeighbourClusters(label, taskId, allNodeIds);
-    for (const k of map.keys()) {
-      const clEdges = map.get(k);
+    // 2 edge 
+    // 2.1 same level edge
+    const slEdgeMap = await retrieveDirectlyConnectedEdgeMap(allNodeIds, label, taskId);
+    for (const k of slEdgeMap.keys()) {
+      const slEdges = slEdgeMap.get(k);
+      slEdges.forEach((e) => {
+        const { source, target } = e;
+        if (!nodeMap.has(source) || !nodeMap.has(target)) return;
+        const edgeId = getJoinString(source, target);
+        if (!edgeMap.has(edgeId)) {
+          newEdges.push(e);
+          edgeMap.set(edgeId, e);
+        }
+      })
+    }
+    // 2.2 cross level edge
+    const clEdgeMap = await retrieveDirectlyConnectedNeighbourClusterEdgeMap(allNodeIds, label, taskId);
+    for (const k of clEdgeMap.keys()) {
+      const clEdges = clEdgeMap.get(k);
       clEdges.forEach((e) => {
         let { nid, cid, source, target } = e;
         if (nodeMap.has(cid)) {
