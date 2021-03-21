@@ -32,7 +32,7 @@ export const saveEdges = async (
     })
   });
 };
-export const saveLayer = async (
+export const saveNetwork = async (
   layer: Network,
   name: string,
 ) => {
@@ -110,7 +110,6 @@ export const retrieveCompleteLayer = async (
   label: string,
   props?: object,
 ): Promise<Network> => {
-  // 
   const nodes = await retrieveNodesByProps(label, props);
   const edges = await retrieveEdgesByProps(label, props);
   return {

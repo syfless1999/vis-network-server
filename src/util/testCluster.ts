@@ -1,5 +1,6 @@
 import { Network, LayerNetwork } from "src/type/network";
 import labelPropagation from 'src/algorithm/label-propagation';
+import { cronDebug } from "./debug";
 
 /**
  * 
@@ -10,12 +11,13 @@ export const testClusterNetwork = (
   layer: Network,
   // depth: number = 10,
 ): LayerNetwork => {
-  let currentDepth = 1, currentLayer: Network = layer;
+  let currentlevel = 1, currentNetwork: Network = layer;
   const layerNetwork = [layer];
-  while (currentLayer.nodes.length > 10) {
-    currentLayer = testClusterLayer(currentLayer, currentDepth);
-    layerNetwork.push(currentLayer);
-    currentDepth += 1;
+  while (currentNetwork.nodes.length > 10) {
+    currentNetwork = testClusterLayer(currentNetwork, currentlevel);
+    layerNetwork.push(currentNetwork);
+    cronDebug(` cluster data [level: ${currentlevel}, clusters: ${currentNetwork.nodes.length}, clusterEdges: ${currentNetwork.edges.length}]`);
+    currentlevel += 1;
   }
   return layerNetwork;
 }
