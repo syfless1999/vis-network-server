@@ -45,7 +45,6 @@ export const retrieveNodesById = async (
   label: string,
   taskId: string,
   ids: string[],
-  limit?: number,
 ): Promise<Node[]> => {
   let query = `UNWIND $ids as id ` +
     `MATCH (node:${label}) ` +
@@ -112,8 +111,8 @@ export const retrieveCompleteLayer = async (
   props?: object,
 ): Promise<Network> => {
   // 
-  const nodes = await retrieveNodesByProps(label, props, 100);
-  const edges = await retrieveEdgesByProps(label, props, 100);
+  const nodes = await retrieveNodesByProps(label, props);
+  const edges = await retrieveEdgesByProps(label, props);
   return {
     nodes,
     edges,
