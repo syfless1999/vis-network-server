@@ -7,14 +7,14 @@ import { objectId2String } from 'src/util/string';
 import { cronDebug } from 'src/util/debug';
 import { measureTimeWrapper } from 'src/util/performance';
 
-export const retrieveDataSourceList = async () => {
+export const readDataSourceList = async () => {
   const list = await DataSource
     .where('url').exists(true)
     .where('name').exists(true)
     .exec();
   return list;
 }
-export const retrieveDataSource = async (dataSourceId: string) => {
+export const readDataSource = async (dataSourceId: string) => {
   const ds = await DataSource.findById(dataSourceId).exec();
   return ds;
 }

@@ -1,12 +1,12 @@
 import Task from 'src/model/Task';
 import { string2ObjectId } from 'src/util/string';
 
-export const retrieveTaskList = async () => {
+export const readTaskList = async () => {
   const list = await Task.find().exec();
   return list;
 }
 
-export const retrieveOneTask = async (taskId: string) => {
+export const readOneTask = async (taskId: string) => {
   const aggregate = Task.aggregate([{
     $match: {
       _id: string2ObjectId(taskId),
@@ -21,7 +21,7 @@ export const retrieveOneTask = async (taskId: string) => {
   return tasks[0];
 };
 
-export const retrieveTaskWithDataSourceList = async () => {
+export const readTaskWithDataSourceList = async () => {
   const aggregate = Task.aggregate();
   const list = await aggregate.lookup({
     from: 'datasources',

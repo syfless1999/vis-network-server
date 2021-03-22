@@ -1,15 +1,15 @@
 import Task, { TaskClusterType } from 'src/model/Task';
-import { isFetching, needFetchEdges, needFetchNodes, retrieveDataSource } from 'src/service/datasource';
-import { retrieveTaskWithDataSourceList, updateTask } from 'src/service/task';
-import { findCrossLevelEdges, retrieveCompleteLayer, saveEdges, saveNetwork } from 'src/service/Network';
+import { isFetching, needFetchEdges, needFetchNodes, readDataSource } from 'src/service/datasource';
+import { readTaskWithDataSourceList, updateTask } from 'src/service/task';
+import { findCrossLevelEdges, readCompleteLayer, saveEdges, saveNetwork } from 'src/service/Network';
 import { testClusterNetwork } from 'src/util/testCluster';
 import { getJoinString, objectId2String } from 'src/util/string';
 import { cronDebug } from 'src/util/debug';
 import { Controller } from 'src/type/express';
 
-export const retrieve: Controller = async (req, res, next) => {
+export const read: Controller = async (req, res, next) => {
   try {
-    const list = await retrieveTaskWithDataSourceList();
+    const list = await readTaskWithDataSourceList();
     res.json({
       message: 'success',
       data: list,
@@ -30,7 +30,7 @@ export interface CreateTaskParams {
 }
 const checkReqBody = async (reqBody: CreateTaskParams) => {
   const { dataSourceId, clusterType, paramWeight, topologyWeight } = reqBody;
-  const ds = await retrieveDataSource(dataSourceId);
+  const ds = await readDataSource(dataSourceId);
   if (!ds) {
     return false;
   }
@@ -82,7 +82,7 @@ export const create: Controller = async (req, res, next) => {
       throw new Error('params not legal');
     }
 
-    const dsView = await retrieveDataSource(dataSourceId);
+    const dsView = await readDataSource(dataSourceId);
     if (isFetching(dsView) || needFetchEdges(dsView) || needFetchNodes(dsView)) {
       throw new Error('datasource has not been fully fetched.')
     }
@@ -125,8 +125,8 @@ const handleTask = async (task: any) => {
   const { name } = dataSource[0];
   cronDebug(`Handle Task [${name}:${taskId}] Start`);
   // 1. get source network data
-  const network = await retrieveCompleteLayer(name);
-  cronDebug(` retrieve source data [nodes: ${network.nodes.length}, edges:${network.edges.length}]`);
+  const network = await readCompleteLayer(name);
+  cronDebug(` read source data [nodes: ${network.nodes.length}, edges:${network.edges.length}]`);
   // 2. n-cluster network
   const layerNetwork = testClusterNetwork(network);
   // 3. data process(add taskId for cluster)
@@ -160,7 +160,7 @@ const handleTask = async (task: any) => {
 }
 
 export const handleTaskCron = async () => {
-  const list = await retrieveTaskWithDataSourceList();
+  const list = await readTaskWithDataSourceList();
   await Promise.all(list.map(async (task: any) => {
     const { progress, dataSource } = task;
     const dsView = dataSource[0];

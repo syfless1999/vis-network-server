@@ -3,7 +3,7 @@ import * as  dataSourceController from 'src/controller/datasource'
 
 const router = Router();
 
-router.get('/', dataSourceController.retrieve);
+router.get('/', dataSourceController.read);
 router.post('/', dataSourceController.create);
 
 export default router;

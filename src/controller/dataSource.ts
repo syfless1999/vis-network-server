@@ -1,7 +1,7 @@
 import { Socket } from 'socket.io';
 import { dsIO } from 'src/websocket';
 import DataSource from 'src/model/DataSource';
-import { retrieveDataSourceList, fetchNodeDataSource, fetchEdgeDataSource, needFetchNodes, needFetchEdges, isFetching } from 'src/service/datasource';
+import { readDataSourceList, fetchNodeDataSource, fetchEdgeDataSource, needFetchNodes, needFetchEdges, isFetching } from 'src/service/datasource';
 import { Controller } from 'src/type/express';
 
 /**
@@ -38,11 +38,11 @@ export const create: Controller = async (req, res, next) => {
 
 /**
  * <http>
- * retrieve list of datasource
+ * read list of datasource
  */
-export const retrieve: Controller = async (req, res, next) => {
+export const read: Controller = async (req, res, next) => {
   try {
-    let dataSourceList = await retrieveDataSourceList();
+    let dataSourceList = await readDataSourceList();
     res.json({
       message: 'success',
       data: dataSourceList,
@@ -57,7 +57,7 @@ export const retrieve: Controller = async (req, res, next) => {
  * datasource socket(list or single)
  */
 export const dataSourceSocketHandler = async (socket: Socket) => {
-  let dataSourceList = await retrieveDataSourceList();
+  let dataSourceList = await readDataSourceList();
   socket.join('datasource_list_room');
   socket.emit('list', {
     message: 'success',
@@ -74,7 +74,7 @@ export const dataSourceSocketHandler = async (socket: Socket) => {
  */
 export const fetchDataSourceCron = async () => {
   try {
-    const list = await retrieveDataSourceList();
+    const list = await readDataSourceList();
 
     const nodeFetchList = list.filter(ds => !isFetching(ds) && needFetchNodes(ds));
     const edgeFetchList = list.filter(ds => !isFetching(ds) && needFetchEdges(ds));
@@ -85,7 +85,7 @@ export const fetchDataSourceCron = async () => {
       await Promise.all(nodeFetchTasks);
       const edgeFetchTasks = edgeFetchList.map((ds) => fetchEdgeDataSource(ds));
       await Promise.all(edgeFetchTasks);
-      const newDataSourceList = await retrieveDataSourceList();
+      const newDataSourceList = await readDataSourceList();
       dsIO.to('datasource_list_room').emit('list', {
         message: 'success',
         list: newDataSourceList,
