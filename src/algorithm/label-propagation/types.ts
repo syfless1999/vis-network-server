@@ -24,7 +24,9 @@ export interface Cluster {
   nodes: NodeConfig[];
   count: number;
 }
-
+export interface NodeIndexMap {
+  [id: string]: NodeConfig;
+}
 export interface ClusterData {
   clusters: Cluster[];
   clusterEdges: EdgeConfig[];

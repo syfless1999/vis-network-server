@@ -32,11 +32,11 @@ export const saveEdges = async (
   });
 };
 export const saveNetwork = async (
-  layer: Network,
+  net: Network,
   name: string,
 ) => {
-  await saveNodes(layer.nodes, name);
-  await saveEdges(layer.edges, name);
+  await saveNodes(net.nodes, name);
+  await saveEdges(net.edges, name);
 }
 export const readNodesById = async (
   ids: string[],
@@ -214,18 +214,18 @@ export const createIndex = async (label: string, index: string) => {
     await txc.run(`CREATE INDEX ${indexName} FOR (n:${label}) ON (n.${index})`);
   });
 }
-export const findCrossLevelEdges = (layers: LayerNetwork) => {
-  let currentLevel = layers.length - 1;
+export const findCrossLevelEdges = (nets: LayerNetwork) => {
+  let currentLevel = nets.length - 1;
   const edges: Edge[] = [];
   while (currentLevel > 0) {
-    const currentLayer = layers[currentLevel];
-    const lowLayer = layers[currentLevel - 1];
-    const lowLayerMap = array2Map(lowLayer.nodes, (n) => n.id);
-    currentLayer.nodes.forEach((node) => {
+    const currentNet = nets[currentLevel];
+    const lowNet = nets[currentLevel - 1];
+    const lowNetMap = array2Map(lowNet.nodes, (n) => n.id);
+    currentNet.nodes.forEach((node) => {
       const { id, nodes } = node;
       if (Array.isArray(nodes)) {
         nodes.forEach((nodeId) => {
-          if (lowLayerMap.has(nodeId)) {
+          if (lowNetMap.has(nodeId)) {
             const edge = {
               source: id,
               target: nodeId,

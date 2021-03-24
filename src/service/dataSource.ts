@@ -47,6 +47,7 @@ const fetchNodes = async (dsView: DataSourceDocument) => {
     nodeStart: node.current,
     nodeEnd: node.current + config.node_fetch_length,
   });
+  cronDebug(`Fetch Task Start [${objectId2String(_id)}]: node current ${node.current}`);
   const { data, total: nodeTotal, end: realEnd } = body.node;
   const { total: edgeTotal } = body.edge;
 
@@ -65,10 +66,11 @@ const fetchNodes = async (dsView: DataSourceDocument) => {
   if (realEnd + 1 === nodeTotal) {
     await createIndex(name, 'id');
   }
-  cronDebug(`Fetch Task [${objectId2String(_id)}]: node fetch ${node.current} -- ${realEnd}`);
+  cronDebug(`Fetch Task End [${objectId2String(_id)}]: node fetch ${node.current} -- ${realEnd}`);
 };
 const fetchEdges = async (dsView: DataSourceDocument) => {
   const { edge, name, _id } = dsView;
+  cronDebug(`Fetch Task Start [${objectId2String(_id)}]: edge current ${edge.current}`);
   const { body } = await request.get(dsView.url).query({
     edgeStart: edge.current,
     edgeEnd: edge.current + config.edge_fetch_length,
@@ -82,7 +84,7 @@ const fetchEdges = async (dsView: DataSourceDocument) => {
       'edge.current': realEnd + 1,
     }
   });
-  cronDebug(`Fetch Task [${objectId2String(_id)}]: edge fetch ${edge.current} -- ${realEnd}`);
+  cronDebug(`Fetch Task End [${objectId2String(_id)}]: edge fetch ${edge.current} -- ${realEnd}`);
 }
 
 const fetchDataSourceWrapper = (

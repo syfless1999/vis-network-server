@@ -67,10 +67,6 @@ export const dataSourceSocketHandler = async (socket: Socket) => {
 
 /**
  * <cron>
- * check what datasource is not completed, and update the data of it
- * TODO:
- *  1. when interval is not enough to update the whole DataSources' nodes and edges, how to solve it?
- *  2. what strategy is comfortable for update several ds of different scale?
  */
 export const fetchDataSourceCron = async () => {
   try {

@@ -2,7 +2,7 @@
 import { uniqueId } from 'src/util/string';
 
 import getAdjMatrix from './adjacent-matrix';
-import { GraphData, ClusterData, Cluster, NodeConfig, EdgeConfig } from './types';
+import { GraphData, ClusterData, Cluster, EdgeConfig, NodeIndexMap } from './types';
 
 /**
  * 标签传播算法
@@ -22,9 +22,9 @@ const labelPropagation = (
   const { nodes = [], edges = [] } = graphData;
 
   const clusters: { [id: string]: Cluster } = {};
-  const nodeMap: { [id: string]: { node: NodeConfig, idx: number } } = {};
+  const nodeMap: NodeIndexMap = {};
   // init the clusters and nodeMap
-  nodes.forEach((node, i) => {
+  nodes.forEach((node) => {
     const cid: string = uniqueId();
     node.clusterId = cid;
     clusters[cid] = {
@@ -32,10 +32,7 @@ const labelPropagation = (
       nodes: [node],
       count: 0,
     };
-    nodeMap[node.id] = {
-      node,
-      idx: i
-    };
+    nodeMap[node.id] = node;
   });
 
   // the adjacent matrix of calNodes inside clusters
@@ -71,7 +68,7 @@ const labelPropagation = (
       const neighborClusters: { [clusterId: string]: number } = {};
       Object.keys(neighbors[node.id]).forEach(neighborId => {
         const neighborWeight = neighbors[node.id][neighborId];
-        const neighborNode = nodeMap[neighborId].node;
+        const neighborNode = nodeMap[neighborId];
         const neighborClusterId = neighborNode.clusterId;
         if (!neighborClusterId) return;
         if (!neighborClusters[neighborClusterId]) neighborClusters[neighborClusterId] = 0;
@@ -158,8 +155,8 @@ const labelPropagation = (
     const { source, target } = edge;
     const weight = edge[weightPropertyName] || 1;
     const count = edge.count || 1;
-    const sourceClusterId = nodeMap[source].node.clusterId;
-    const targetClusterId = nodeMap[target].node.clusterId;
+    const sourceClusterId = nodeMap[source].clusterId;
+    const targetClusterId = nodeMap[target].clusterId;
 
     const newEdgeId = `${sourceClusterId}---${targetClusterId}`;
     if (clusterEdgeMap[newEdgeId]) {

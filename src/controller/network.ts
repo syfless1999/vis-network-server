@@ -33,10 +33,10 @@ export const readNetwork: Controller = async (req, res, next) => {
       throw new Error('This task has not been finished.');
     }
     const level = queryLevel == undefined || Number(queryLevel) < 0 ? task.largestLevel : Number(queryLevel);
-    let layer: Network;
-    layer = await readPartNetwork(name, level, taskId, 60);
+    let net: Network;
+    net = await readPartNetwork(name, level, taskId, 60);
     const layerNetwork: network.LayerNetwork = Array.from({ length: task.largestLevel + 1 });
-    layerNetwork[level] = layer;
+    layerNetwork[level] = net;
     res.json({
       message: 'success',
       data: layerNetwork,

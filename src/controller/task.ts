@@ -2,7 +2,7 @@ import Task, { TaskClusterType } from 'src/model/Task';
 import { isFetching, needFetchEdges, needFetchNodes, readDataSource } from 'src/service/datasource';
 import { readTaskWithDataSourceList, updateTask } from 'src/service/task';
 import { findCrossLevelEdges, readCompleteLayer, saveEdges, saveNetwork } from 'src/service/Network';
-import { testClusterNetwork } from 'src/util/testCluster';
+import { testClusterLayerNetwork } from 'src/util/testCluster';
 import { getJoinString, objectId2String } from 'src/util/string';
 import { cronDebug } from 'src/util/debug';
 import { Controller } from 'src/type/express';
@@ -123,17 +123,17 @@ const handleTask = async (task: any) => {
   const { dataSource, _id } = task;
   const taskId = objectId2String(_id);
   const { name } = dataSource[0];
-  cronDebug(`Handle Task [${name}:${taskId}] Start`);
+  cronDebug(`Handle Task Start [${name}:${taskId}]`);
   // 1. get source network data
   const network = await readCompleteLayer(name);
-  cronDebug(` read source data [nodes: ${network.nodes.length}, edges:${network.edges.length}]`);
+  cronDebug(` read source data FIN [nodes: ${network.nodes.length}, edges:${network.edges.length}]`);
   // 2. n-cluster network
-  const layerNetwork = testClusterNetwork(network);
+  const layerNetwork = testClusterLayerNetwork(network);
   // 3. data process(add taskId for cluster)
   const completeLayerNetwork = [];
   for (let index = 1; index < layerNetwork.length; index++) {
-    const layer = layerNetwork[index];
-    const { nodes, edges } = layer;
+    const net = layerNetwork[index];
+    const { nodes, edges } = net;
     const layerWithTaskId = {
       nodes: nodes.map(node => ({ ...node, taskId })),
       edges: edges.map(edge => ({ ...edge, taskId })),
@@ -142,21 +142,21 @@ const handleTask = async (task: any) => {
   }
   // 4. save layer network to neo4j
   for (let i = 0; i < completeLayerNetwork.length; i += 1) {
-    const layer = completeLayerNetwork[i];
-    await saveNetwork(layer, name);
+    const net = completeLayerNetwork[i];
+    await saveNetwork(net, name);
   }
-  cronDebug(` save cluster result`);
+  cronDebug(` save cluster result FIN`);
   // 5. create edge from 
   const crossLevelEdges = findCrossLevelEdges(layerNetwork);
   const includeEdgeLabel = getJoinString(name, 'include');
   await saveEdges(crossLevelEdges, name, includeEdgeLabel);
-  cronDebug(` save cross level edge`);
+  cronDebug(` save cross level edge FIN`);
   // 6. update task info
   await updateTask(task, {
     progress: 100,
     largestLevel: layerNetwork.length - 1,
   });
-  cronDebug(`Handle Task [${name}:${taskId}] Finish`);
+  cronDebug(`Handle Task [${name}:${taskId}] FIN`);
 }
 
 export const handleTaskCron = async () => {

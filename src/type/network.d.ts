@@ -1,6 +1,8 @@
-export interface Feature {
-  property: string;
-  desc: string;
+export interface Feat {
+  [feat: string]: number;
+}
+export interface Features {
+  [prop: string]: Feat;
 }
 export interface Node {
   id: string;
