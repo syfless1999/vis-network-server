@@ -122,13 +122,13 @@ export const create: Controller = async (req, res, next) => {
 const handleTask = async (task: any) => {
   const { dataSource, _id } = task;
   const taskId = objectId2String(_id);
-  const { name } = dataSource[0];
+  const { name, node: { param } } = dataSource[0];
   cronDebug(`Handle Task Start [${name}:${taskId}]`);
   // 1. get source network data
   const network = await readCompleteLayer(name);
   cronDebug(` read source data FIN [nodes: ${network.nodes.length}, edges:${network.edges.length}]`);
   // 2. n-cluster network
-  const layerNetwork = testClusterLayerNetwork(network);
+  const layerNetwork = testClusterLayerNetwork(network, param);
   // 3. data process(add taskId for cluster)
   const completeLayerNetwork = [];
   for (let index = 1; index < layerNetwork.length; index++) {
