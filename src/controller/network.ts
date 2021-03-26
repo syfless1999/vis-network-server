@@ -1,7 +1,7 @@
 import * as network from 'src/type/network';
 import networkData from 'src/mock/networkData.json';
 import { readConnectedNeighbourClusterNetworkMap, readDirectlyConnectedNodeNetworkMap, readNodesById, readPartNetwork } from 'src/service/network';
-import { readOneTask } from 'src/service/task';
+import { readOneTaskWithDataSource } from 'src/service/task';
 import { Network } from 'src/type/network';
 import { Controller } from 'src/type/express';
 import { array2Map, uniqueArray } from 'src/util/array';
@@ -23,7 +23,7 @@ export const readNetwork: Controller = async (req, res, next) => {
     const { query } = req;
     const queryLevel = query.level;
     const taskId = `${query.taskId}`;
-    const task = await readOneTask(taskId);
+    const task = await readOneTaskWithDataSource(taskId);
     const { dataSource, progress } = task;
     const { name } = dataSource[0];
     if (task == null) {

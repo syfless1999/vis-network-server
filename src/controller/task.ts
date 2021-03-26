@@ -1,6 +1,6 @@
 import Task, { TaskClusterType } from 'src/model/Task';
 import { isFetching, needFetchEdges, needFetchNodes, readDataSource } from 'src/service/datasource';
-import { readTaskWithDataSourceList, updateTask } from 'src/service/task';
+import { readOneTaskWithDataSource, readTaskWithDataSourceList, updateTask } from 'src/service/task';
 import { findCrossLevelEdges, readCompleteLayer, saveEdges, saveNetwork } from 'src/service/Network';
 import { testClusterLayerNetwork } from 'src/util/testCluster';
 import { getJoinString, objectId2String } from 'src/util/string';
@@ -18,7 +18,19 @@ export const read: Controller = async (req, res, next) => {
     next(error);
   }
 }
-
+export const readOneTask: Controller = async (req, res, next) => {
+  const { params } = req;
+  const id: string = params.id;
+  try {
+    const data = await readOneTaskWithDataSource(id);
+    res.json({
+      message: 'success',
+      data,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
 export interface CreateTaskParams {
   dataSourceId: string;
   clusterType: TaskClusterType;

@@ -6,7 +6,7 @@ export const readTaskList = async () => {
   return list;
 }
 
-export const readOneTask = async (taskId: string) => {
+export const readOneTaskWithDataSource = async (taskId: string) => {
   const aggregate = Task.aggregate([{
     $match: {
       _id: string2ObjectId(taskId),
