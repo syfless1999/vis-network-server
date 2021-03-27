@@ -1,6 +1,6 @@
 import * as network from 'src/type/network';
 import networkData from 'src/mock/networkData.json';
-import { readConnectedNeighbourClusterNetworkMap, readDirectlyConnectedNodeNetworkMap, readNodesById, readPartNetwork } from 'src/service/network';
+import { readConnectedNeighbourClusterNetworkMap, readDirectlyConnectedNodeNetworkMap, readEdgeNumber, readNodeNumber, readNodesById, readPartNetwork } from 'src/service/network';
 import { readOneTaskWithDataSource } from 'src/service/task';
 import { Network } from 'src/type/network';
 import { Controller } from 'src/type/express';
@@ -34,12 +34,18 @@ export const readNetwork: Controller = async (req, res, next) => {
     }
     const level = queryLevel == undefined || Number(queryLevel) < 0 ? task.largestLevel : Number(queryLevel);
     let net: Network;
-    net = await readPartNetwork(name, level, taskId, 60);
+    net = await readPartNetwork(name, level, taskId, 100);
+    const nodeNum = await readNodeNumber(name, { level: 0 });
+    const edgeNum = await readEdgeNumber(name, { level: 0 });
     const layerNetwork: network.LayerNetwork = Array.from({ length: task.largestLevel + 1 });
     layerNetwork[level] = net;
     res.json({
       message: 'success',
-      data: layerNetwork,
+      data: {
+        nodeNum,
+        edgeNum,
+        network: layerNetwork,
+      },
     })
   } catch (error) {
     next(error);

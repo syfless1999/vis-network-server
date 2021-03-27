@@ -208,6 +208,35 @@ export const readConnectedNeighbourClusterNetworkMap = async (
   });
   return map;
 };
+export const readNodeNumber = async (
+  label: string,
+  props?: object,
+) => {
+  const propsString = props2CypherParam(props);
+  let query = `MATCH (node:${label} ${propsString}) RETURN COUNT(node) AS COUNT `;
+  let num = 0;
+  await runTransaction(async (txc) => {
+    const res = await txc.run(query, props);
+    const { low, high } = res.records[0].get('COUNT');
+    num = low - high;
+  });
+  return num;
+};
+export const readEdgeNumber = async (
+  label: string,
+  props?: object,
+) => {
+  const propsString = props2CypherParam(props);
+  let query = `MATCH ( n1: ${label} ${propsString})-[e]->( n2: ${label} ${propsString}) RETURN COUNT(e) AS COUNT `;
+  let num = 0;
+  await runTransaction(async (txc) => {
+    const res = await txc.run(query, props);
+    const { low, high } = res.records[0].get('COUNT');
+    num = low - high;
+  });
+  return num;
+};
+
 export const createIndex = async (label: string, index: string) => {
   const indexName = getJoinString(label, index);
   await runTransaction(async (txc) => {
