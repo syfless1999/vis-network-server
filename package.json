@@ -23,7 +23,8 @@
   "scripts": {
     "watch": "nodemon && ts-node -r tsconfig-paths/register ./app.ts",
     "start": "tsc && NODE_PATH=dist/ node ./dist/app.js",
-    "build": "tsc"
+    "build": "tsc",
+		"run": "NODE_PATH=dist/ node ./dist/app.js"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.2",

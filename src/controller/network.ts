@@ -34,7 +34,7 @@ export const readNetwork: Controller = async (req, res, next) => {
     }
     const level = queryLevel == undefined || Number(queryLevel) < 0 ? task.largestLevel : Number(queryLevel);
     let net: Network;
-    net = await readPartNetwork(name, level, taskId, 100);
+    net = await readPartNetwork(name, level, taskId, 50);
     const nodeNum = await readNodeNumber(name, { level: 0 });
     const edgeNum = await readEdgeNumber(name, { level: 0 });
     const layerNetwork: network.LayerNetwork = Array.from({ length: task.largestLevel + 1 });
