@@ -5,7 +5,7 @@ import { createIndex, saveEdges, saveNodes } from 'src/service/Network';
 import { Node } from 'src/type/network'
 import { objectId2String } from 'src/util/string';
 import { cronDebug } from 'src/util/debug';
-import { measureTimeWrapper } from 'src/util/performance';
+import { measurePerformanceWrapper, measureTimeWrapper } from 'src/util/performance';
 
 export const readDataSourceList = async () => {
   const list = await DataSource
@@ -100,5 +100,5 @@ const fetchDataSourceWrapper = (
     await DataSource.findByIdAndUpdate(_id, { $set: { 'isFetching': false } });
   };
 };
-export const fetchNodeDataSource = measureTimeWrapper(fetchDataSourceWrapper(fetchNodes), 'fetch node');
-export const fetchEdgeDataSource = measureTimeWrapper(fetchDataSourceWrapper(fetchEdges), 'fetch edge');
+export const fetchNodeDataSource = measurePerformanceWrapper(fetchDataSourceWrapper(fetchNodes), 'fetch node');
+export const fetchEdgeDataSource = measurePerformanceWrapper(fetchDataSourceWrapper(fetchEdges), 'fetch edge');

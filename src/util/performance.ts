@@ -22,13 +22,14 @@ export const measureTimeWrapper = <T extends unknown[], U>(
  * @returns function wrapped with memory measure
  */
 export const measureMemoryWrapper = <T extends unknown[], U>(
-  f: (...args: T) => Promise<U>,
+  f: (...args: T) => Promise<U> | U,
 ) => {
   return async function (...args: T) {
-    const mem = process.memoryUsage();
+    const m1 = process.memoryUsage();
     const formatBytes = (bytes: number) => (bytes / 1024 / 1024).toFixed(2) + 'MB';
     const res = await f(...args);
-    console.log('Process: heapTotal ' + formatBytes(mem.heapTotal) + ' heapUsed ' + formatBytes(mem.heapUsed) + ' rss ' + formatBytes(mem.rss));
+    const m2 = process.memoryUsage();
+    console.log('Process: heapTotal ' + formatBytes(m2.heapTotal - m1.heapTotal) + ' heapUsed ' + formatBytes(m2.heapUsed - m1.heapUsed) + ' rss ' + formatBytes(m2.rss - m1.rss));
     return res;
   }
 }

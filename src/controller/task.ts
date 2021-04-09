@@ -6,6 +6,7 @@ import { testClusterLayerNetwork } from 'src/util/testCluster';
 import { getJoinString, objectId2String } from 'src/util/string';
 import { cronDebug } from 'src/util/debug';
 import { Controller } from 'src/type/express';
+import { measurePerformanceWrapper } from 'src/util/performance';
 
 export const read: Controller = async (req, res, next) => {
   try {
@@ -140,7 +141,8 @@ const handleTask = async (task: any) => {
   const network = await readCompleteLayer(name);
   cronDebug(` read source data FIN [nodes: ${network.nodes.length}, edges:${network.edges.length}]`);
   // 2. n-cluster network
-  const layerNetwork = testClusterLayerNetwork(network, param);
+  const tc =measurePerformanceWrapper(testClusterLayerNetwork, 'cluster layer');
+  const layerNetwork = await tc(network, param);
   // 3. data process(add taskId for cluster)
   const completeLayerNetwork = [];
   for (let index = 1; index < layerNetwork.length; index++) {
