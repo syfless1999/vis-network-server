@@ -1,22 +1,10 @@
 import * as network from 'src/type/network';
-import networkData from 'src/mock/networkData.json';
 import { readConnectedNeighbourClusterNetworkMap, readDirectlyConnectedNodeNetworkMap, readEdgeNumber, readNodeNumber, readNodesById, readPartNetwork } from 'src/service/network';
 import { readOneTaskWithDataSource } from 'src/service/task';
 import { Network } from 'src/type/network';
 import { Controller } from 'src/type/express';
 import { array2Map, uniqueArray } from 'src/util/array';
 import { getJoinString } from 'src/util/string';
-
-export const read: Controller = async (req, res, next) => {
-  try {
-    res.json({
-      message: 'success',
-      data: networkData as network.LayerNetwork,
-    })
-  } catch (error) {
-    next(error);
-  }
-}
 
 export const readNetwork: Controller = async (req, res, next) => {
   try {
