@@ -1,4 +1,4 @@
-import { Controller } from 'src/type/express';
+import { Controller } from 'src/type/http';
 
 
 export const index: Controller = (req, res, next) => {

@@ -2,10 +2,11 @@ import request from 'superagent';
 import DataSource, { DataSourceDocument } from 'src/model/DataSource';
 import config from 'src/config';
 import { createIndex, saveEdges, saveNodes } from 'src/service/Network';
-import { Node } from 'src/type/network'
+import { Node, Edge } from 'src/type/network'
 import { objectId2String } from 'src/util/string';
 import { cronDebug } from 'src/util/debug';
 import { measurePerformanceWrapper, measureTimeWrapper } from 'src/util/performance';
+import { DataSourceRequest, DataSourceResponse } from 'src/type/http';
 
 export const readDataSourceList = async () => {
   const list = await DataSource
@@ -41,9 +42,19 @@ export const needFetchEdges = (ds: DataSourceDocument) => !needFetchNodes(ds) &&
   ds.edge.total > ds.edge.current
 );
 
+
+export const fetchData = async (url: string, req: DataSourceRequest): Promise<DataSourceResponse> => {
+  try {
+    const res: { body: DataSourceResponse } = await request.get(url).query(req);
+    const { body } = res;
+    return body;
+  } catch (error) {
+    throw new Error('fetch data error');
+  }
+}
 const fetchNodes = async (dsView: DataSourceDocument) => {
   const { node, name, _id } = dsView;
-  const { body } = await request.get(dsView.url).query({
+  const body = await fetchData(dsView.url, {
     nodeStart: node.current,
     nodeEnd: node.current + config.node_fetch_length,
   });
@@ -71,7 +82,7 @@ const fetchNodes = async (dsView: DataSourceDocument) => {
 const fetchEdges = async (dsView: DataSourceDocument) => {
   const { edge, name, _id } = dsView;
   cronDebug(`Fetch Task Start [${objectId2String(_id)}]: edge current ${edge.current}`);
-  const { body } = await request.get(dsView.url).query({
+  const body = await fetchData(dsView.url, {
     edgeStart: edge.current,
     edgeEnd: edge.current + config.edge_fetch_length,
   });

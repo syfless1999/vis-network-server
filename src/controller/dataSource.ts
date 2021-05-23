@@ -2,7 +2,7 @@ import { Socket } from 'socket.io';
 import { dsIO } from 'src/websocket';
 import DataSource from 'src/model/DataSource';
 import { readDataSourceList, fetchNodeDataSource, fetchEdgeDataSource, needFetchNodes, needFetchEdges, isFetching } from 'src/service/datasource';
-import { Controller } from 'src/type/express';
+import { Controller } from 'src/type/http';
 
 /**
  * <http>

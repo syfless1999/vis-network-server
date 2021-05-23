@@ -2,7 +2,7 @@ import * as network from 'src/type/network';
 import { readConnectedNeighbourClusterNetworkMap, readDirectlyConnectedNodeNetworkMap, readEdgeNumber, readNodeNumber, readNodesById, readPartNetwork } from 'src/service/network';
 import { readOneTaskWithDataSource } from 'src/service/task';
 import { Network } from 'src/type/network';
-import { Controller } from 'src/type/express';
+import { Controller } from 'src/type/http';
 import { array2Map, uniqueArray } from 'src/util/array';
 import { getJoinString } from 'src/util/string';
 

@@ -5,7 +5,7 @@ import { findCrossLevelEdges, readCompleteLayer, saveEdges, saveNetwork } from '
 import { testClusterLayerNetwork } from 'src/util/testCluster';
 import { getJoinString, objectId2String } from 'src/util/string';
 import { cronDebug } from 'src/util/debug';
-import { Controller } from 'src/type/express';
+import { Controller } from 'src/type/http';
 import { measurePerformanceWrapper } from 'src/util/performance';
 
 export const read: Controller = async (req, res, next) => {
