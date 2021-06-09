@@ -6,7 +6,6 @@
   "gypfile": true,
   "dependencies": {
     "@antv/algorithm": "^0.1.4",
-    "bindings": "^1.5.0",
     "cookie-parser": "^1.4.5",
     "cron": "^1.8.2",
     "debug": "^4.3.1",
@@ -16,7 +15,6 @@
     "http-errors": "^1.8.0",
     "mongoose": "^5.12.1",
     "neo4j-driver": "^4.2.3",
-    "node-addon-api": "^3.1.0",
     "socket.io": "^4.0.0",
     "superagent": "^6.1.0"
   },
